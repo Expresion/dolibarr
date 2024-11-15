@@ -1384,10 +1384,8 @@ if (count($listofextcals)) {
 					$event->datep = $datestart + $usertime;
 					$event->datef = $dateend + $usertime;
 
-					//if ($icalevent['SUMMARY']) {
 					if (isset($icalevent['SUMMARY']) && $icalevent['SUMMARY']) {
 						$event->label = dol_string_nohtmltag($icalevent['SUMMARY']);
-					//} elseif ($icalevent['DESCRIPTION']) {
 					} elseif (isset($icalevent['DESCRIPTION']) && $icalevent['DESCRIPTION']) {
 						$event->label = dol_nl2br(dol_string_nohtmltag($icalevent['DESCRIPTION']), 1);
 					} else {
