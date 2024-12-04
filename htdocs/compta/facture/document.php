@@ -89,7 +89,15 @@ $usercancreate = $user->hasRight("facture", "creer");
  * Actions
  */
 
-include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+ include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+ 
+ $reshook = $hookmanager->executeHooks('doActions', array(), $object, $action); // Note that $action and $object may have been modified by some hooks
+ if ($reshook < 0) {
+	 setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+	}
+	if (empty($reshook)) {
+ include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+}
 
 
 /*
