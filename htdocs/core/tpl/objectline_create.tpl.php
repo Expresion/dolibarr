@@ -646,7 +646,6 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 	} ?>
 	});
 
-	/* TODO This does not work for number with thousand separator that is , */
 	function checkFreeLine(e, npRate)
 	{
 		var buying_price = $("input[name='buying_price']:first");
@@ -672,14 +671,14 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 		}
 
 		var price = 0;
-		remisejs=price2numjs(remise.val());
+		remisejs=remise.val();
 
 		if (remisejs != 100)	// If a discount not 100 or no discount
 		{
 			if (remisejs == '') remisejs=0;
 
-			bpjs=price2numjs(buying_price.val());
-			ratejs=price2numjs(rate.val());
+			bpjs=buying_price.val();
+			ratejs=rate.val();
 
 			if (npRate == "np_marginRate")
 				price = ((bpjs * (1 + ratejs / 100)) / (1 - remisejs / 100));
