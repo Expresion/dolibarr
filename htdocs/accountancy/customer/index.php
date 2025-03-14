@@ -5,6 +5,7 @@
  * Copyright (C) 2014       Juanjo Menent       <jmenent@2byte.es>
  * Copyright (C) 2015       Jean-François Ferry <jfefe@aternatik.fr>
  * Copyright (C) 2024		Frédéric France			<frederic.france@free.fr>
+ * Copyright (C) 2025		MDW					<mdeweerd@users.noreply.github.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,10 +180,6 @@ if ($action == 'validatehistory' && $user->hasRight('accounting', 'bind', 'write
 	} else {
 		$num_lines = $db->num_rows($result);
 
-		$facture_static = new Facture($db);
-
-		$isSellerInEEC = isInEEC($mysoc);
-
 		$thirdpartystatic = new Societe($db);
 		$facture_static = new Facture($db);
 		$facture_static_det = new FactureLigne($db);
@@ -237,9 +234,6 @@ if ($action == 'validatehistory' && $user->hasRight('accounting', 'bind', 'write
 				'intra' => $objp->aarowid_intra,
 				'export' => $objp->aarowid_export,
 				'thirdparty' => $objp->aarowid_thirdparty);
-
-			$code_sell_p_notset = '';
-			$code_sell_t_notset = '';
 
 			$suggestedid = 0;
 
@@ -429,10 +423,10 @@ if ($resql) {
 			$cursoryear = ($cursormonth < getDolGlobalInt('SOCIETE_FISCAL_MONTH_START', 1)) ? $y + 1 : $y;
 			$tmp = dol_getdate(dol_get_last_day($cursoryear, $cursormonth, 'gmt'), false, 'gmt');
 
-			print '<td class="right nowraponall amount" title="'.price($row[2*$i - 2]).' - '.$row[2*$i - 1].' lines">';
-			print price($row[2*$i - 2]);
+			print '<td class="right nowraponall amount" title="'.price($row[2 * $i - 2]).' - '.$row[2 * $i - 1].' lines">';
+			print price($row[2 * $i - 2]);
 			// Add link to make binding
-			if (!empty(price2num($row[2*$i - 2])) || !empty($row[2*$i - 1])) {
+			if (!empty(price2num($row[2 * $i - 2])) || !empty($row[2 * $i - 1])) {
 				print '<a href="'.$_SERVER['PHP_SELF'].'?action=validatehistory&year='.$y.'&validatemonth='.((int) $cursormonth).'&validateyear='.((int) $cursoryear).'&token='.newToken().'">';
 				print img_picto($langs->trans("ValidateHistory").' ('.$langs->trans('Month'.str_pad((string) $cursormonth, 2, '0', STR_PAD_LEFT)).' '.$cursoryear.')', 'link', 'class="marginleft2"');
 				print '</a>';
@@ -672,7 +666,7 @@ if (getDolGlobalString('SHOW_TOTAL_OF_PREVIOUS_LISTS_IN_LIN_PAGE')) { // This pa
 						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100))))",	// TODO This is bugged, we must use the percent for the invoice and fd.situation_percent is cumulated percent !
 						"  (fd.total_ht - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100)))"
 					).")",
-					0
+					'0'
 				).") AS month".str_pad((string) $j, 2, '0', STR_PAD_LEFT).",";
 			}
 			$sql .= "  SUM(".$db->ifsql(
@@ -694,7 +688,7 @@ if (getDolGlobalString('SHOW_TOTAL_OF_PREVIOUS_LISTS_IN_LIN_PAGE')) { // This pa
 						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty)))",
 						"  (fd.total_ht - (fd.buy_price_ht * fd.qty))"
 					).")",
-					0
+					'0'
 				).") AS month".str_pad((string) $j, 2, '0', STR_PAD_LEFT).",";
 			}
 			$sql .= "  SUM(".$db->ifsql(

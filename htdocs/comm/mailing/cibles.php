@@ -3,7 +3,7 @@
  * Copyright (C) 2005-2024 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2010 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2014      Florian Henry        <florian.henry@open-concept.pro>
- * Copyright (C) 2024      MDW	                <mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2025	MDW	                <mdeweerd@users.noreply.github.com>
  * Copyright (C) 2024		Frédéric France			<frederic.france@free.fr>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -393,7 +393,7 @@ if ($object->fetch($id) >= 0) {
 		$emailarray = CMailFile::getArrayAddress($object->email_errorsto);
 		foreach ($emailarray as $email => $name) {
 			if ($name != $email) {
-				print dol_escape_htmltag($name).' &lt;'.$email;
+				print dol_escape_htmltag((string) $name).' &lt;'.$email;
 				print '&gt;';
 				if ($email && !isValidEmail($email)) {
 					$langs->load("errors");
@@ -412,7 +412,7 @@ if ($object->fetch($id) >= 0) {
 	// Reply to
 	if ($object->messtype != 'sms') {
 		print '<tr><td>';
-		print $form->editfieldkey("MailReply", 'email_replyto', $object->email_replyto, $object, $user->hasRight('mailing', 'creer') && $object->status < $object::STATUS_SENTCOMPLETELY, 'string');
+		print $form->editfieldkey("MailReply", 'email_replyto', $object->email_replyto, $object, (int) ($user->hasRight('mailing', 'creer') && $object->status < $object::STATUS_SENTCOMPLETELY), 'string');
 		print '</td><td>';
 		print $form->editfieldval("MailReply", 'email_replyto', $object->email_replyto, $object, $user->hasRight('mailing', 'creer') && $object->status < $object::STATUS_SENTCOMPLETELY, 'string');
 		$email = CMailFile::getValidAddress($object->email_replyto, 2);
@@ -476,7 +476,7 @@ if ($object->fetch($id) >= 0) {
 		}
 		print $text;
 		if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'default') {
-			if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'mail') {
+			if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') && getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'mail') {
 				print ' <span class="opacitymedium">('.getDolGlobalString('MAIN_MAIL_SMTP_SERVER_EMAILING', getDolGlobalString('MAIN_MAIL_SMTP_SERVER')).')</span>';
 			}
 		} elseif (getDolGlobalString('MAIN_MAIL_SENDMODE') != 'mail' && getDolGlobalString('MAIN_MAIL_SMTP_SERVER')) {
@@ -678,7 +678,7 @@ if ($object->fetch($id) >= 0) {
 			print '<br>';
 		}
 
-		print '<br>';
+		print '<br><br>';
 	}
 
 	// List of selected targets
@@ -803,7 +803,7 @@ if ($object->fetch($id) >= 0) {
 		}
 
 		$varpage = empty($contextpage) ? $_SERVER["PHP_SELF"] : $contextpage;
-		$htmlofselectarray = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage, $conf->main_checkbox_left_column);  // This also change content of $arrayfields with user setup
+		$htmlofselectarray = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage, $conf->main_checkbox_left_column ? 'left' : '');  // This also change content of $arrayfields with user setup
 		$selectedfields = ($mode != 'kanban' ? $htmlofselectarray : '');
 		$selectedfields .= (count($arrayofmassactions) ? $form->showCheckAddButtons('checkforselect', 1) : '');
 
@@ -915,7 +915,7 @@ if ($object->fetch($id) >= 0) {
 
 				// Action column
 				if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-					print '<td class="center">';
+					print '<td class="center nowraponall">';
 					print '<!-- ID mailing_cibles = '.$obj->rowid.' -->';
 					if ($massactionbutton || $massaction) { // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
 						$selected = 0;
@@ -926,7 +926,7 @@ if ($object->fetch($id) >= 0) {
 					}
 					if ($obj->status == $object::STATUS_DRAFT) {	// Not sent yet
 						if ($user->hasRight('mailing', 'creer')) {
-							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
+							print '<a class="reposition marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}
 					/*if ($obj->status == -1)	// Sent with error
@@ -977,14 +977,14 @@ if ($object->fetch($id) >= 0) {
 
 				// Date last update
 				print '<td class="center nowraponall">';
-				print dol_print_date(dol_stringtotime($obj->tms), 'dayhour');
+				print dol_print_date($db->jdate($obj->tms), 'dayhour', 'tzuserrel');
 				print '</td>';
 
 				// Date sent
 				print '<td class="center nowraponall">';
 				if ($obj->status != $object::STATUS_DRAFT) {		// If status of target line is not draft
 					// Date sent
-					print $obj->date_envoi;		// @TODO Must store date in date format
+					print dol_print_date($db->jdate($obj->date_envoi), 'dayhour', 'tzuserrel');		// @TODO Must store date in date format
 				}
 				print '</td>';
 
@@ -999,11 +999,11 @@ if ($object->fetch($id) >= 0) {
 
 				// Action column
 				if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-					print '<td class="center">';
+					print '<td class="center nowraponall">';
 					print '<!-- ID mailing_cibles = '.$obj->rowid.' -->';
 					if ($obj->status == $object::STATUS_DRAFT) {	// If status of target line is not sent yet
 						if ($user->hasRight('mailing', 'creer')) {
-							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
+							print '<a class="reposition marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}
 					/*if ($obj->status == -1)	// Sent with error
