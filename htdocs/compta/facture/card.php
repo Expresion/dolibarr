@@ -861,6 +861,10 @@ if (empty($reshook)) {
 			if ($result < 0) {
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
+			if ($result >= 0) {
+				header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
+				exit;
+			}
 		} else {
 			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Reason")), null, 'errors');
 		}
