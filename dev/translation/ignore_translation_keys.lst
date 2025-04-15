@@ -91,8 +91,6 @@ YourTicketSuccessfullySaved
 ........
 AADE_WEBSERVICE_KEY
 AADE_WEBSERVICE_USER
-APCCacheInstalledButDisabled
-APCInstalled
 API
 Accept
 AccountancyErrorMismatchLetteringCode
@@ -103,7 +101,6 @@ ActionAC_
 ActionAC_ALL_
 AddSite
 AddSupplier
-AddTicketIntoCategory
 Adherent
 AdherentNotLinkedToThirdParty
 AdvTgtUse
@@ -211,7 +208,6 @@ ConfirmDeleteAdherent
 ConfirmDeleteIndividual
 ConfirmDeleteReport
 ConfirmDeleteWebsiteAccount
-ConfirmReoponAsk
 ConnectingToStripeTerminal
 Constant
 ContactAddress
@@ -219,7 +215,6 @@ ContactDefault_
 ContactSuperAdminForChange
 ContactUs
 Container
-Contrats
 Control
 Convert
 Core
@@ -239,7 +234,6 @@ Datee
 Dateo
 Dates
 Datet
-DecimalSeparator
 Declared
 Decline
 DefaultCashPOSLabel
@@ -439,7 +433,6 @@ GlobalVariableUpdaterType
 GoOnTokenProviderToDeleteToken
 GoSourceInvoice
 Gzip
-H
 HTTPBasicPassword
 HelpAbandonProductReturned
 HideVersionLink
@@ -512,7 +505,6 @@ Millisecond
 Minimum
 Mo
 Mode
-Modifier
 Module/Application
 ModuleCompanyCode
 ModuleCompanyCodeCustomer
@@ -684,7 +676,6 @@ RECUR
 RSS
 RateIndirect
 Re-Open
-Rechercher
 ReconciledBy
 RecordNotFound
 RecruitmentJobPosition
@@ -797,12 +788,9 @@ SmsTestSubstitutionReplacedByGenericValues
 SomeShipmentExists
 SourceType
 Split
-SplitAllQuantity
 Standard
 StatsOnDonationsOnlyValidated
 StatusProspect
-Stock Total
-Stock total
 StockTransferLine
 Stripe
 StripeAutoSubscription
@@ -813,17 +801,12 @@ StripeCustomer
 Sub-projects
 SubscriptionStripe
 Success
-Sumup
-SumupAffiliate
-SumupAppId
 Supervisor
 SupplierDepositsAreNotIncluded
 SupplierMissingRef
 Synchronize
 Syslog
 TLS/STARTTLS
-TLSv1
-TLSv1.2
 TYPE_
 Tabs
 Tag
@@ -839,7 +822,6 @@ Templates
 TestPrinterTemplate
 TestTemplateToPrinter
 Theme
-Thirdparty
 ThirdpartyHasNoDefaultBanAccount
 ThisIsInformationOnDocumentToSign
 ThisScreenAllowsYouToSignDocFrom
@@ -851,7 +833,6 @@ TimeOnly
 Timezone
 ToGetBack
 ToPay
-ToReopon
 Token
 Tooltip
 TooltipEditAndRevertStockMovement
@@ -907,7 +888,6 @@ WorkingBoard
 Workload
 WrongAmount
 XDebug
-XXX
 XmlCorrupted
 Y
 ZeroMeansEveryYear
@@ -1016,18 +996,13 @@ INVOICE_USE_RETAINED_WARRANTY
 INVOICE_USE_SITUATION
 INVOICE_USE_SITUATION_CREDIT_NOTE
 ImpossibleToContactAuthority
-InputValueIsNotAnNumber
 InterDate
-Inventory Code
-InvoiceReplace
 ItemID
 JobApplications
 JobPosition
 Journal
-Label Movement
 Labels
 Last
-LedgerAccount
 LocalTax1IsNotUsedExample
 LocalTax1IsUsedExample
 LocalTax2IsNotUsedExample
@@ -1078,7 +1053,6 @@ ReceptionValidated
 Recruited
 Ref. Product
 RefNewContract
-Societe
 Stable
 Suggested
 TicketMessageMailSignatureText
@@ -1098,14 +1072,9 @@ Vat
 VirtualHost
 WEBPORTAL_ROOT_URL
 WEBPORTAL_USER_LOGGED2
-XSubsriptionError
-email
-id
 multicurrency_buyPriceInCurrency
 multicurrency_modifyRateApplication
-ref
 smsing
-societe
 target
 titre
 type

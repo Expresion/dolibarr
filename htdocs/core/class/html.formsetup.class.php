@@ -188,7 +188,7 @@ class FormSetup
 			} elseif ($editMode) {
 				$out .= '<div class="form-setup-button-container center">'; // Todo : remove .center by adding style to form-setup-button-container css class in all themes
 				$out .= $this->htmlOutputMoreButton;
-				$out .= '<input class="button button-save" type="submit" value="' . $this->langs->trans("Save") . '">'; // Todo fix dolibarr style for <button and use <button instead of input
+				$out .= '<input class="button button-save reposition" type="submit" value="' . $this->langs->trans("Save") . '">'; // Todo fix dolibarr style for <button and use <button instead of input
 				/*$out .= ' &nbsp;&nbsp; ';
 				$out .= '<a class="button button-cancel" type="submit" href="' . $this->formAttributes['action'] . '">'.$this->langs->trans('Cancel').'</a>';
 				*/
@@ -233,7 +233,7 @@ class FormSetup
 				$out .= '<thead>';
 				$out .= '<tr class="liste_titre">';
 				$out .= '	<td>' . $this->langs->trans("Parameter") . '</td>';
-				$out .= '	<td>' . $this->langs->trans("Value") . '</td>';
+				$out .= '	<td></td>';
 				$out .= '</tr>';
 				$out .= '</thead>';
 			}
@@ -817,6 +817,8 @@ class FormSetupItem
 				$val_const = GETPOST($this->confKey, 'restricthtml');
 			} elseif ($this->type == 'email') {
 				$val_const = GETPOST($this->confKey, 'alphawithlgt');
+			} elseif ($this->type == 'number') {
+				$val_const = GETPOSTINT($this->confKey);
 			} else {
 				$val_const = GETPOST($this->confKey, 'alphanohtml');
 			}
@@ -909,8 +911,8 @@ class FormSetupItem
 		} elseif ($this->type == 'yesno') {
 			if (!empty($conf->use_javascript_ajax)) {
 				$input = $this->fieldParams['input'] ?? array();
-				$revertonoff = isset($this->fieldParams['revertonoff']) ? 1 : 0;
-				$forcereload = isset($this->fieldParams['forcereload']) ? 1 : 0;
+				$revertonoff = !empty($this->fieldParams['revertonoff']) ? 1 : 0;
+				$forcereload = !empty($this->fieldParams['forcereload']) ? 1 : 0;
 
 				$out .= ajax_constantonoff($this->confKey, $input, $this->entity, $revertonoff, 0, $forcereload);
 			} else {
@@ -1225,8 +1227,8 @@ class FormSetupItem
 			$out .=  $this->generateOutputFieldColor();
 		} elseif ($this->type == 'yesno') {
 			if (!empty($conf->use_javascript_ajax)) {
-				$revertonoff = $this->fieldParams['revertonoff'] ? 1 : 0;
-				$forcereload = $this->fieldParams['forcereload'] ? 1 : 0;
+				$revertonoff = empty($this->fieldParams['revertonoff']) ? 0 : 1;
+				$forcereload = empty($this->fieldParams['forcereload']) ? 0 : 1;
 
 				$out .= ajax_constantonoff($this->confKey, array(), $this->entity, $revertonoff, 0, $forcereload);
 			} else {
@@ -1286,7 +1288,7 @@ class FormSetupItem
 			require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 
 			$bankaccount = new Account($this->db);
-			$resbank = $bankaccount->fetch((string) $this->fieldValue);
+			$resbank = $bankaccount->fetch((int) $this->fieldValue);
 			if ($resbank > 0) {
 				$out .= $bankaccount->label;
 			} elseif ($resbank < 0) {
@@ -1364,7 +1366,7 @@ class FormSetupItem
 		$default = $this->defaultFieldValue;
 		include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 		$formother = new FormOther($this->db);
-		return $formother->selectColor(colorArrayToHex(colorStringToArray((string) $this->fieldAttr['value'], array()), ''), $this->fieldAttr['name'], '', 1, array(), '', '', $default).' ';
+		return $formother->selectColor(colorArrayToHex(colorStringToArray((string) $this->fieldAttr['value'], array()), ''), $this->fieldAttr['name'], '', 1, array(), '', '', (string) $default).' ';
 	}
 
 	/**
@@ -1410,6 +1412,31 @@ class FormSetupItem
 		$this->type = 'string';
 		return $this;
 	}
+
+	/**
+	 * Set type of input as number
+	 * @param int $min minimum value for input number
+	 * @param int $max maximum value for input number
+	 * @param int $step legal number intervals
+	 *
+	 * @return self
+	 */
+	public function setAsNumber($min = null, $max = null, $step = null)
+	{
+		$this->type = 'number'; //for GETPOSTINT
+		$this->fieldAttr['type'] = 'number'; //generic thanks to generateAttributesStringFromArray
+		if (!is_null($min)) {
+			$this->fieldAttr['min'] = $min;
+		}
+		if (!is_null($max)) {
+			$this->fieldAttr['max'] = $max;
+		}
+		if (!is_null($step)) {
+			$this->fieldAttr['step'] = $step;
+		}
+		return $this;
+	}
+
 
 	/**
 	 * Set type of input as string

@@ -682,7 +682,7 @@ class Commande extends CommonOrder
 		$this->db->begin();
 
 		$sql = "UPDATE ".MAIN_DB_PREFIX.$this->table_element;
-		$sql .= " SET fk_statut = ".self::STATUS_DRAFT.",";
+		$sql .= " SET fk_statut = ".((int) self::STATUS_DRAFT).",";
 		$sql .= " fk_user_modif = ".((int) $user->id);
 		$sql .= " WHERE rowid = ".((int) $this->id);
 
@@ -725,6 +725,7 @@ class Commande extends CommonOrder
 
 			if (!$error) {
 				$this->statut = self::STATUS_DRAFT;
+				$this->status = self::STATUS_DRAFT;
 				$this->db->commit();
 				return 1;
 			} else {
@@ -1540,7 +1541,7 @@ class Commande extends CommonOrder
 	 *	@param		int				$special_code		Special code (also used by externals modules!)
 	 *	@param		int				$fk_parent_line		Parent line
 	 *  @param		int				$fk_fournprice		Id supplier price
-	 *  @param		float			$pa_ht				Buying price (without tax)
+	 *  @param		float|string	$pa_ht				Buying price without tax (Can be '' to keep AWP unchanged or a float value)
 	 *  @param		string			$label				Label
 	 *  @param		array<string,mixed>	$array_options	Extrafields array. Example array('options_codeforfield1'=>'valueforfield1', 'options_codeforfield2'=>'valueforfield2', ...)
 	 * 	@param 		?int			$fk_unit 			Code of the unit to use. Null to use the default one
@@ -1918,7 +1919,7 @@ class Commande extends CommonOrder
 	 *	@param      int			$id       		Id of object to load
 	 * 	@param		string		$ref			Ref of object
 	 * 	@param		string		$ref_ext		External reference of object
-	 * 	@param		string		$notused		Internal reference of other object
+	 * 	@param		string		$notused		Not used
 	 *	@return     int         				>0 if OK, <0 if KO, 0 if not found
 	 */
 	public function fetch($id, $ref = '', $ref_ext = '', $notused = '')
@@ -3063,7 +3064,7 @@ class Commande extends CommonOrder
 	 * 	@param		int				$fk_parent_line		Id of parent line (0 in most cases, used by modules adding sublevels into lines).
 	 * 	@param		int				$skip_update_total	Keep fields total_xxx to 0 (used for special lines by some modules)
 	 *  @param		int				$fk_fournprice		Id of origin supplier price
-	 *  @param		float			$pa_ht				Price (without tax) of product when it was bought
+	 *  @param		float|string	$pa_ht				Price (without tax) of product when it was bought (Can be '' to keep AWP unchanged or a float value)
 	 *  @param		string			$label				Label
 	 *  @param		int				$special_code		Special code (also used by externals modules!)
 	 *  @param		array<string,mixed>	$array_options	extrafields array
@@ -3497,7 +3498,7 @@ class Commande extends CommonOrder
 
 		// Delete record into ECM index and physically
 		if (!$error) {
-			$res = $this->deleteEcmFiles(0); // Deleting files physically is done later with the dol_delete_dir_recursive
+			$res = $this->deleteEcmFiles(0); // Deleting files physically is done later with the dol_delete_dir_recursive, old method.
 			$res = $this->deleteEcmFiles(1); // Deleting files physically is done later with the dol_delete_dir_recursive
 			if (!$res) {
 				$error++;
