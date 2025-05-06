@@ -681,9 +681,23 @@ section.setupsection {
 	background-color: var(--colorbacktitle1);
 	border-radius: 5px;
 }
+section.setupsection:hover {
+	box-shadow: 0 0 5px #aaa;
+}
 
 .field-error-icon { color: #ea1212 !important; }
 
+/* Focus definitions must be after standard definition */
+div.tabBar textarea:focus:not(.textarea-ai_feature):not(.cke_source) {
+	border: 1px solid #aaa !important;
+}
+textarea.cke_source:focus
+{
+	box-shadow: none;
+}
+div#cke_dp_desc {
+	margin-top: 5px;
+}
 textarea {
 	border-radius: 0;
 	border-top:solid 1px var(--inputbordercolor);
@@ -777,6 +791,7 @@ input.buttonpaymentstripe {
 	max-height: 80px;
 	max-width: 300px;
 	image-rendering: -webkit-optimize-contrast;		/* better rendering on public page header */
+	border-radius: 4px;
 }
 a.butStatus {
 	padding-left: 5px;
@@ -952,7 +967,7 @@ input:-webkit-autofill {
 
 input[type=checkbox], input[type=radio] {
 	margin: 0 5px 0 1px;
-	transform: scale(1.2);
+	transform: scale(1.25);
 }
 .kanban input.checkforselect {
 	margin-right: 0px;
@@ -1190,6 +1205,11 @@ textarea.centpercent {
 }
 .centerimp {
 	text-align: center !important;
+}
+.centergrid {
+	display: grid;
+	text-align: center;
+	place-items: center;
 }
 .alignstart {
 	text-align: start;
@@ -1463,11 +1483,11 @@ body[class*="colorblind-"] .text-success{
 	color : <?php print $textDanger; ?>
 }
 
-.editfielda span.fa-pencil-alt, .editfielda span.fa-pencil-ruler, .editfielda span.fa-trash, .editfielda span.fa-crop, .editfielda span.fa-eye,
+.editfielda span.fa-pencil-alt, .editfielda span.fa-pencil-ruler, .editfielda span.fa-trash, .editfielda span.fa-crop, .editfielda span.fa-eye, .editfielda span.fa-magic,
 .editfieldlang {
 	color: #ccc !important;
 }
-.editfielda span.fa-pencil-alt:hover, .editfielda span.fa-pencil-ruler:hover, .editfielda span.fa-trash:hover, .editfielda span.fa-crop:hover,
+.editfielda span.fa-pencil-alt:hover, .editfielda span.fa-pencil-ruler:hover, .editfielda span.fa-trash:hover, .editfielda span.fa-crop:hover, .editfielda span.fa-magic:hover,
 .editfieldlang:hover {
 	color: var(--colortexttitle) !important;
 }
@@ -1490,7 +1510,9 @@ span.fa.fa-plus-circle.paddingleft {
 
 .size12x { font-size: 1.2em !important; }
 .size15x { font-size: 1.5em !important; }
-.fa-toggle-on, .fa-toggle-off, .size2x { font-size: 2em; }
+.size2x { font-size: 2em; }
+.size4x { font-size: 4em !important; }
+.fa-toggle-on, .fa-toggle-off { font-size: 2em; }
 .websiteselectionsection .fa-toggle-on, .websiteselectionsection .fa-toggle-off,
 .asetresetmodule .fa-toggle-on, .asetresetmodule .fa-toggle-off,
 .tdwebsitesearchresult .fa-toggle-on, .tdwebsitesearchresult .fa-toggle-off {
@@ -2036,7 +2058,7 @@ div.ticketpublicarealist>form>div.div-table-responsive {
 }
 
 .flexcontainer {
-	<?php if (in_array($conf->browser->name, array('chrome', 'firefox'))) {
+	<?php if (in_array($conf->browser->name, array('chrome', 'firefox', 'safari'))) {
 		echo 'display: inline-flex;'."\n";
 	} ?>
 	flex-flow: row wrap;
@@ -2353,7 +2375,7 @@ select.widthcentpercentminusxx, span.widthcentpercentminusxx:not(.select2-select
 	}
 
 	div.tabs div.tab a.tab  {
-		max-width: 200px;
+		max-width: 180px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -3244,6 +3266,10 @@ div.mainmenu.menu {
 
 
 /* To show text of top menu according to option THEME_TOPMENU_DISABLE_IMAGE */
+
+.menuhider {
+	width: <?php echo $disableimages ? 'auto' : '44'; ?>px;
+}
 
 /* Text hidden by default */
 <?php if (in_array(getDolGlobalInt('THEME_TOPMENU_DISABLE_IMAGE'), array(2, 3, 4))) { ?>
@@ -5346,7 +5372,8 @@ img.boxhandle, img.boxclose {
 .star-selection {
 	font-size: 1rem;
 	cursor: pointer;
-	display: flex;
+	display: inline-block;
+	white-space: nowrap;
 }
 .star {
 	color: #ccc;
@@ -7339,6 +7366,9 @@ span#select2-boxcombo-container {
   background-image: -moz-linear-gradient(top, #f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
   background-image: linear-gradient(to bottom, #f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
 }
+.mytooltip .select2-container-multi-dolibarr .select2-choices-dolibarr .select2-search-choice-dolibarr {
+  padding: 1px 3px 1px 3px;
+}
 .select2-container-multi-dolibarr .select2-choices-dolibarr .select2-search-choice-dolibarr a {
 	font-weight: normal;
 }
@@ -7865,16 +7895,19 @@ border-top-right-radius: 6px;
 {
 	padding-left: 44px;
 	background: #fff ! important;
+	font-size: 0.9em;
 }
 .lilevel4
 {
 	padding-left: 66px;
 	background: #fff ! important;
+	font-size: 0.9em;
 }
 .lilevel5
 {
 	padding-left: 88px;
 	background: #fff ! important;
+	font-size: 0.9em;
 }
 
 
@@ -7949,11 +7982,11 @@ border-top-right-radius: 6px;
 	border: 1px solid #888;
 }
 .publicnewmemberform div.tabBarWithBottom {
-	border: 1px solid #e8e8e8;
+	border: 2px solid #e8e8e8;
 	padding: 30px;
 	border-radius: 8px;
-	background-color: #f8f8f8;
-	/*box-shadow: 2px 2px 10px #ddd;*/
+	/* background-color: #f8f8f8; */
+	box-shadow: 2px 2px 10px #ddd;
 }
 
 .publicnewmemberform #tablesubscribe {
@@ -8519,80 +8552,6 @@ table.jPicker {
 /* CSS style used for small screen                                                */
 /* ============================================================================== */
 
-@media only screen and (max-width: 767px)
-{
-	.ai_dropdown{
-		min-width : 280px !important;
-	}
-
-	.imgopensurveywizard, .imgautosize { width:95%; height: auto; }
-
-	#tooltip {
-		position: absolute;
-		width: <?php print dol_size(350, 'width'); ?>px;
-	}
-
-	div.tabBar {
-		padding-left: 8px;
-		padding-right: 8px;
-		border-radius: 0px;
-		border-right: none;
-		border-left: none;
-	}
-
-	td.widthpictotitle { width: 30px; }
-
-	.logopublicpayment #dolpaymentlogo {
-		max-width: 260px;
-	}
-	#tablepublicpayment {
-		width:	auto !important;
-		border: none !important;
-	}
-	.poweredbypublicpayment {
-		float: unset !important;
-		top: unset !important;
-		/* bottom: 8px; */
-		right: -10px !important;
-		position: relative !important;
-	}
-	.poweredbyimg {
-		width: 48px;
-	}
-
-	.survey_borders {
-		margin-left: 10px;
-		margin-right: 10px;
-		text-align: start;
-	}
-
-	.bookcalform.boxtable .minwidth75 {
-		min-width: auto;
-	}
-	.center.bookingtab {
-		margin-left: 6px;
-	}
-	#bookinghoursection {
-		font-size: small;
-		width: 122px;
-	}
-}
-
-@media only screen and (max-width: 1024px)
-{
-	div#ecm-layout-west {
-		width: 100%;
-		clear: both;
-	}
-	div#ecm-layout-center {
-		width: 100%;
-	}
-}
-
-.menuhider {
-	width: <?php echo $disableimages ? 'auto' : '44'; ?>px;
-}
-
 /* nboftopmenuentries = <?php echo $nbtopmenuentries ?>, fontsize=<?php echo is_numeric($fontsize) ? $fontsize.'px' : $fontsize ?> */
 /* rule to reduce top menu - 1st reduction: Reduce width of top menu icons */
 @media only screen and (max-width: <?php echo getDolGlobalString('THEME_ELDY_WITDHOFFSET_FOR_REDUC1', round($nbtopmenuentries * 90, 0) + 340); ?>px)	/* reduction 1 */
@@ -8800,6 +8759,86 @@ table.jPicker {
 		margin-top: 30px;
 	}
 }
+
+@media only screen and (max-width: 767px)
+{
+	.ai_dropdown{
+		min-width : 280px !important;
+	}
+
+	.imgopensurveywizard, .imgautosize { width:95%; height: auto; }
+
+	#tooltip {
+		position: absolute;
+		width: <?php print dol_size(350, 'width'); ?>px;
+	}
+
+	div.tabBar {
+		padding-left: 8px;
+		padding-right: 8px;
+		border-radius: 0px;
+		border-right: none;
+		border-left: none;
+	}
+
+	td.widthpictotitle { width: 30px; }
+
+	.logopublicpayment #dolpaymentlogo {
+		max-width: 260px;
+	}
+	#tablepublicpayment {
+		width:	auto !important;
+		border: none !important;
+	}
+	.poweredbypublicpayment {
+		float: unset !important;
+		top: unset !important;
+		/* bottom: 8px; */
+		right: -10px !important;
+		position: relative !important;
+	}
+	.poweredbyimg {
+		width: 48px;
+	}
+
+	.survey_borders {
+		margin-left: 10px;
+		margin-right: 10px;
+		text-align: start;
+	}
+
+	.bookcalform.boxtable .minwidth75 {
+		min-width: auto;
+	}
+	.center.bookingtab {
+		margin-left: 6px;
+	}
+	#bookinghoursection {
+		font-size: small;
+		width: 122px;
+	}
+
+	a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
+		padding: 10px 3px 10px;
+	}
+}
+
+@media only screen and (max-width: 1024px)
+{
+	div#ecm-layout-west {
+		width: 100%;
+		clear: both;
+	}
+	div#ecm-layout-center {
+		width: 100%;
+	}
+
+	input[type=checkbox], input[type=radio] {
+		margin: 0 5px 0 1px;
+		transform: scale(1.1);
+	}
+}
+
 
 <?php
 if (getDolUserString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
