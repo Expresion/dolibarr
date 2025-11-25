@@ -51,7 +51,7 @@ $lineid = GETPOSTINT('lineid');
 
 $action = GETPOST('action', 'aZ09');
 $confirm = GETPOST('confirm', 'alpha');
-$cancel = GETPOST('cancel', 'aZ09');
+$cancel = GETPOST('cancel', 'alpha');
 $contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : str_replace('_', '', basename(dirname(__FILE__)).basename(__FILE__, '.php')); // To manage different context of search
 $backtopage = GETPOST('backtopage', 'alpha');
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');
@@ -122,6 +122,7 @@ if (!$permissiontoread) {
 /*
  * Actions
  */
+
 $error = 0;
 
 $parameters = array();
@@ -150,7 +151,7 @@ if (empty($reshook)) {
 	$startyear = GETPOSTINT('startyear');
 	$starthour = GETPOSTINT('startHour');
 
-	if (GETPOST('startHour') == "") {
+	if (GETPOST('startHour') == "" && ($action == 'add' || $action == 'update')) {	// Test on permission not required
 		$error++;
 		setEventMessages($langs->trans("ErrorStartHourIsNull"), $hookmanager->errors, 'errors');
 	}
@@ -162,7 +163,7 @@ if (empty($reshook)) {
 	$endyear = GETPOSTINT('endyear');
 	$endhour = GETPOSTINT('endHour');
 
-	if (GETPOST('endHour') == "") {
+	if (GETPOST('endHour') == "" && ($action == 'add' || $action == 'update')) {	// Test on permission not required
 		$error++;
 		setEventMessages($langs->trans("ErrorEndHourIsNull"), $hookmanager->errors, 'errors');
 	}
@@ -237,7 +238,7 @@ if ($action == 'create') {
 	}
 
 	print load_fiche_titre($langs->trans("NewAvailabilities"), '', 'object_'.$object->picto);
-	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
+	print '<form method="POST" action="'.dolBuildUrl($_SERVER["PHP_SELF"]).'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	if ($error != 0) {
 		print '<input type="hidden" name="action" value="create">';
@@ -276,7 +277,7 @@ if ($action == 'create') {
 if (($id || $ref) && $action == 'edit') {
 	print load_fiche_titre($langs->trans("Availabilities"), '', 'object_'.$object->picto);
 
-	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
+	print '<form method="POST" action="'.dolBuildUrl($_SERVER["PHP_SELF"]).'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	print '<input type="hidden" name="action" value="update">';
 	print '<input type="hidden" name="id" value="'.$object->id.'">';
@@ -418,7 +419,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 				}
 				if (empty($reshook)) {
-					$object->formAddObjectLine(1, $mysoc, $soc);
+					$object->formAddObjectLine(1, $mysoc, $mysoc);
 				}
 			}
 		}
@@ -466,7 +467,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Clone
-			print dolGetButtonAction($langs->trans('ToClone'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.(!empty($object->socid) ? '&socid='.$object->socid : '').'&action=clone&token='.newToken(), '', $permissiontoadd);
+			print dolGetButtonAction($langs->trans('ToClone'), '', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=clone&token='.newToken(), '', $permissiontoadd);
 
 			/*
 			if ($permissiontoadd) {

@@ -104,7 +104,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 		}
 
 		// Actions
-		if ($action == 'COMPANY_CREATE') {
+		if ($action == 'COMPANY_CREATE' && $object instanceof Societe) {
 			'@phan-var-force Societe $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "companies"));
@@ -122,7 +122,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			$object->sendtoid = array();
 			$object->socid = $object->id;
-		} elseif ($action == 'COMPANY_MODIFY') {
+		} elseif ($action == 'COMPANY_MODIFY' && $object instanceof Societe) {
 			'@phan-var-force Societe $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "companies"));
@@ -145,7 +145,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			$object->sendtoid = array();
 			$object->socid = $object->id;
-		} elseif ($action == 'COMPANY_SENTBYMAIL') {
+		} elseif ($action == 'COMPANY_SENTBYMAIL' && $object instanceof Societe) {
 			'@phan-var-force Societe $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "orders"));
@@ -160,7 +160,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			// Parameters $object->sendtoid defined by caller
 			//$object->sendtoid = array();
-		} elseif ($action == 'CONTACT_CREATE') {
+		} elseif ($action == 'CONTACT_CREATE' && $object instanceof Contact) {
 			'@phan-var-force Contact $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "companies"));
@@ -178,8 +178,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			$object->sendtoid = array($object->id => $object->id);
 			// $object->socid = $object->socid;
-		} elseif ($action == 'CONTACT_MODIFY') {
-			'@phan-var-force Contrat $object';
+		} elseif ($action == 'CONTACT_MODIFY' && $object instanceof Contact) {
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "companies"));
 
@@ -196,7 +195,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			$object->sendtoid = array($object->id => $object->id);
 			// $object->socid = $object->socid;
-		} elseif ($action == 'CONTRACT_VALIDATE') {
+		} elseif ($action == 'CONTRACT_VALIDATE' && $object instanceof Contrat) {
 			'@phan-var-force Contrat $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "contracts"));
@@ -213,7 +212,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'CONTRACT_SENTBYMAIL') {
+		} elseif ($action == 'CONTRACT_SENTBYMAIL' && $object instanceof Contrat) {
 			'@phan-var-force Contrat $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "contracts"));
@@ -231,7 +230,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			// Parameters $object->sendtoid defined by caller
 			//$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_VALIDATE') {
+		} elseif ($action == 'PROPAL_VALIDATE' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -248,7 +247,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_MODIFY') {
+		} elseif ($action == 'PROPAL_MODIFY' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -265,7 +264,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_SENTBYMAIL') {
+		} elseif ($action == 'PROPAL_SENTBYMAIL' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -283,7 +282,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 
 			// Parameters $object->sendtoid defined by caller
 			//$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_CLOSE_SIGNED') {
+		} elseif ($action == 'PROPAL_CLOSE_SIGNED' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -300,7 +299,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_CLASSIFY_BILLED') {
+		} elseif ($action == 'PROPAL_CLASSIFY_BILLED' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -317,7 +316,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'PROPAL_CLOSE_REFUSED') {
+		} elseif ($action == 'PROPAL_CLOSE_REFUSED' && $object instanceof Propal) {
 			'@phan-var-force Propal $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "propal"));
@@ -334,7 +333,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'ORDER_VALIDATE') {
+		} elseif ($action == 'ORDER_VALIDATE' && $object instanceof Commande) {
 			'@phan-var-force Commande $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "orders"));
@@ -351,7 +350,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'ORDER_CLOSE') {
+		} elseif ($action == 'ORDER_CLOSE' && $object instanceof Commande) {
 			'@phan-var-force Commande $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "orders"));
@@ -368,7 +367,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'ORDER_CLASSIFY_BILLED') {
+		} elseif ($action == 'ORDER_CLASSIFY_BILLED' && $object instanceof Commande) {
 			'@phan-var-force Commande $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "orders"));
@@ -385,7 +384,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'ORDER_CANCEL') {
+		} elseif ($action == 'ORDER_CANCEL' && $object instanceof Commande) {
 			'@phan-var-force Commande $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "orders"));
@@ -402,7 +401,7 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 
 			$object->sendtoid = array();
-		} elseif ($action == 'ORDER_SENTBYMAIL') {
+		} elseif ($action == 'ORDER_SENTBYMAIL' && $object instanceof Commande) {
 			'@phan-var-force Commande $object';
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "orders"));
@@ -425,14 +424,14 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			// Load translation files required by the page
 			$langs->loadLangs(array("agenda", "other", "bills"));
 
-			if (empty($object->actionmsg2)) {
+			if (empty($object->actionmsg2)) {	// Label
 				if (empty($object->context['actionmsg2'])) {
 					$object->actionmsg2 = $langs->transnoentities("InvoiceValidatedInDolibarr", ($object->newref ? $object->newref : $object->ref));
 				} else {
 					$object->actionmsg2 = $object->context['actionmsg2'];
 				}
 			}
-			if (empty($object->actionmsg)) {
+			if (empty($object->actionmsg)) {	// Description
 				$object->actionmsg = $langs->transnoentities("InvoiceValidatedInDolibarr", ($object->newref ? $object->newref : $object->ref));
 			}
 
@@ -1593,17 +1592,21 @@ class InterfaceActionsAuto extends DolibarrTriggers
 		$elementid = $object->id; // id of object
 		$elementtype = $object->element;
 		$elementmodule = (empty($object->module) ? '' : $object->module);
+		// Special cases to support old naming.
 		if ($object->element == 'subscription') {
 			'@phan-var-force Subscription $object';
 			$elementid = $object->fk_adherent;
 			$elementtype = 'member';
+		}
+		if ($elementmodule == 'product') {
+			$elementmodule = '';
 		}
 		//var_dump($societeforaction);var_dump($contactforaction);var_dump($elementid);var_dump($elementtype);exit;
 
 		// Insertion action
 		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 		$actioncomm = new ActionComm($this->db);
-		$actioncomm->type_code   = $object->actiontypecode; // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+		$actioncomm->type_code   = $object->actiontypecode; // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_TICKET_CREATE', 'AC_XXX'...)
 		$actioncomm->code        = 'AC_'.$action;
 		$actioncomm->label       = $object->actionmsg2;		// Label of event
 		$actioncomm->note_private = $object->actionmsg;		// Description
@@ -1616,14 +1619,19 @@ class InterfaceActionsAuto extends DolibarrTriggers
 		$actioncomm->contact_id  = $contactforactionid; // deprecated, now managed by setting $actioncomm->socpeopleassigned later
 		$actioncomm->authorid    = $user->id; // User saving action
 		$actioncomm->userownerid = $user->id; // Owner of action
+
 		// Fields defined when action is an email (content should be into object->actionmsg to be added into event note, subject should be into object->actionmsg2 to be added into event label)
 		if (!property_exists($object, 'email_fields_no_propagate_in_actioncomm') || empty($object->email_fields_no_propagate_in_actioncomm)) {
-			'@phan-var-force ActionComm $object';  // TODO: Non of the dolibarr classes has all the fields, check class type or properties (email_date)
-			$actioncomm->datep         = empty($object->email_date) ? $now : $object->email_date;
-			$actioncomm->datef         = empty($object->email_date) ? $now : $object->email_date;
+			'@phan-var-force ActionComm $object';  // TODO: None of the dolibarr classes has all the fields, check class type or properties (email_date)
+			// If event is to record a message after an email received, we use the date of email as date of event.
+			if (!empty($object->email_date) && $actioncomm->type_code === 'AC_TICKET_CREATE') {
+				$actioncomm->datep         = $object->email_date;
+				$actioncomm->datef         = $object->email_date;
+			}
 			$actioncomm->email_msgid   = empty($object->email_msgid) ? null : $object->email_msgid;
 			$actioncomm->email_from    = empty($object->email_from) ? null : $object->email_from;
-			$actioncomm->email_sender  = empty($object->email_sender) ? null : $object->email_sender;
+			$actioncomm->email_reply_to = empty($object->email_reply_to) ? null : $object->email_reply_to;
+			$actioncomm->email_subject = empty($object->email_subject) ? null : $object->email_subject;
 			$actioncomm->email_to      = empty($object->email_to) ? null : $object->email_to;
 			$actioncomm->email_tocc    = empty($object->email_tocc) ? null : $object->email_tocc;
 			$actioncomm->email_tobcc   = empty($object->email_tobcc) ? null : $object->email_tobcc;
@@ -1657,6 +1665,8 @@ class InterfaceActionsAuto extends DolibarrTriggers
 			}
 		}
 
+		$actioncomm->ip = getUserRemoteIP(1);
+
 		$ret = $actioncomm->create($user); // User creating action
 
 		if ($ret > 0 && getDolGlobalString('MAIN_COPY_FILE_IN_EVENT_AUTO')) {
@@ -1683,6 +1693,8 @@ class InterfaceActionsAuto extends DolibarrTriggers
 		// Reset value set by caller
 		unset($object->context['actionmsg']);
 		unset($object->context['actionmsg2']);
+		unset($object->context['actionmsgmore']);
+		unset($object->context['actionmsg2more']);
 		unset($object->actionmsg);
 		unset($object->actionmsg2);
 		unset($object->actiontypecode); // When several action are called on same object, we must be sure to not reuse value of first action.
