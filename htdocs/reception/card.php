@@ -235,6 +235,9 @@ if (empty($reshook)) {
 	// Reopen
 	if ($action == 'reopen' && $permissiontoadd) {	// Test on permissions not required here
 		$result = $object->reOpen();
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+		}
 	}
 
 	// Confirm back to draft status
@@ -2320,8 +2323,6 @@ if ($action == 'create' && $permissiontoadd) {
 
 	print '<div class="clearboth"></div>';
 
-	print dol_get_fiche_end();
-
 	/*
 	* Lines of simple reception
 	*/
@@ -2480,7 +2481,7 @@ if ($action == 'create' && $permissiontoadd) {
 			$origin = 'supplier_order';
 		}
 
-		if ($origin && $origin_id > 0) {
+		if ($origin_id > 0) {
 			$sql = "SELECT obj.rowid, obj.fk_product, obj.label, obj.description, obj.product_type as fk_product_type, obj.qty as qty_asked, obj.date_start, obj.date_end";
 			$sql .= ", ed.rowid as receptionline_id, ed.qty, ed.fk_reception as reception_id,  ed.fk_entrepot";
 			$sql .= ", e.rowid as reception_id, e.ref as reception_ref, e.date_creation, e.date_valid, e.date_delivery, e.date_reception";

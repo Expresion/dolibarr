@@ -45,7 +45,7 @@
 }
 
 .no-bottom {
-	padding-bottom: 0;
+	padding-bottom: 0 !important;
 }
 
 .small {
@@ -493,6 +493,10 @@ td.firstcolumn {
 }
 td.lastcolumn {
     width: 150px;
+}
+
+.cursorpointer {
+	cursor: pointer;
 }
 
 /* Force values for small screen 570 */
