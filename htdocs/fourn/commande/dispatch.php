@@ -328,7 +328,7 @@ if ($action == 'dispatch' && $permissiontoreceive) {
 
 			if (getDolGlobalString('SUPPLIER_ORDER_CAN_UPDATE_BUYINGPRICE_DURING_RECEIPT')) {
 				if (!isModEnabled("multicurrency") && empty($conf->dynamicprices->enabled)) {
-					$dto = GETPOSTINT("dto_".$reg[1].'_'.$reg[2]);
+					$dto = GETPOSTFLOAT("dto_".$reg[1].'_'.$reg[2]);
 					if (!empty($dto)) {
 						$unit_price = price2num((float) GETPOST("pu_".$reg[1]) * (100 - $dto) / 100, 'MU');
 					}
@@ -374,7 +374,7 @@ if ($action == 'dispatch' && $permissiontoreceive) {
 
 					if (!$error && getDolGlobalString('SUPPLIER_ORDER_CAN_UPDATE_BUYINGPRICE_DURING_RECEIPT')) {
 						if (!isModEnabled("multicurrency") && empty($conf->dynamicprices->enabled)) {
-							$dto = GETPOSTINT("dto_".$reg[1].'_'.$reg[2]);
+							$dto = GETPOSTFLOAT("dto_".$reg[1].'_'.$reg[2]);
 							//update supplier price
 							if (GETPOSTISSET($saveprice)) {
 								// TODO Use class
