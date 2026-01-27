@@ -563,6 +563,10 @@ input {
 .tableforfield input{
 	padding: 2px;
 }
+input.downloadexternallink {
+	padding-left: 3px;
+}
+
 .refidno input {
 	margin-top: 0 !important;
 	padding: 0;
@@ -2010,6 +2014,10 @@ select.flat.selectlimit {
 .tablelistofcalendars {
 	margin-top: 25px !important;
 }
+.navselectiondate {
+	min-width: 250px;
+}
+
 .amountalreadypaid {
 	white-space: nowrap;
 }
@@ -2058,6 +2066,16 @@ select.flat.selectlimit {
 	padding: 5px;
 	border-radius: 5px;
 }
+
+.showonhover:hover *::before {
+	visibility: visible !important;
+	display: inline-block !important;
+}
+.showonhover:not(:hover) *::before {
+	visibility: hidden;
+	display: inline-block !important;
+}
+
 
 .savingdocmask {
 	margin-top: 6px;
@@ -2542,7 +2560,7 @@ select.widthcentpercentminusxx, span.widthcentpercentminusxx:not(.select2-select
 
 	/* input, input[type=text], */
 	select {
-		width: 98%;
+		/* width: 98%; */
 		min-width: 40px;
 	}
 
@@ -3883,7 +3901,7 @@ img.userphotopublicvcard {
 	top: 25px;
 	left: -110px;
 }
-form[name="addtime"] img.userphoto {
+form[name="addtime"] img.userphoto, form[name="addtime"] img.userphotosmall {
 	border: 1px solid #444;
 }
 .span-icon-user {
@@ -4811,6 +4829,7 @@ table.listwithfilterbefore {
 .tagtd, .table-border-col, .table-key-border-col, .table-val-border-col { display: table-cell; }
 .confirmquestions .tagtr .tagtd:not(:first-child)  { padding-left: 10px; }
 .confirmquestions { margin-top: 5px; }
+.confirmquestions .tagtr .tagtd { height: 2em; vertical-align: middle; }
 
 
 /* Pagination */
@@ -8968,8 +8987,8 @@ table.jPicker {
 		width: <?php print dol_size(300, 'width'); ?>px;
 	}
 	select {
-		width: 98%;
-		min-width: 0 !important;
+		/* width: 98%; */
+		min-width: 40px;
 	}
 	div.divphotoref {
 		padding-<?php echo $right; ?>: 5px;
