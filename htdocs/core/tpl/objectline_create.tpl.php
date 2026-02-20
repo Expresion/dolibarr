@@ -667,15 +667,95 @@ if ((isModEnabled("service") || ($object->element == 'contrat')) && $dateSelecto
 
 print "<script>\n";
 
-if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
-	?>
-	/* Some js test when we click on button "Add" */
-	jQuery(document).ready(function() {
-	<?php
-	if (getDolGlobalString('DISPLAY_MARGIN_RATES')) { ?>
-		$("input[name='np_marginRate']:first").blur(function(e) {
-			console.log("np_marginRate blur, call checkFreeLine");
-			return checkFreeLine(e, "np_marginRate");
+if ( !empty($object->thirdparty) ) {
+	$jsConf['docObject']['thirdparty'] = [
+		'state_code' => $object->thirdparty->state_code,
+		'country_code' => $object->thirdparty->country_code,
+	];
+}
+
+//var_dump($jsConf);
+
+?>
+<script nonce="<?php print getNonce(); ?>">
+	/**
+	 * First Step of factoring js part in goal of remove printed js to migrate to js files this class with hooks
+	 * STOP USING PHP in js use a const container with php data passed as JSON
+	 * The goal is to extract JS to migrate it in a js file and one day create init tests on js too
+	 *
+	 * @typedef {Object} JsConf
+	 * @property {Object} conf
+	 * @property {boolean} conf.freelines
+	 * @property {string} conf.MARGIN_TYPE
+	 * @property {string} conf.currency
+	 * @property {boolean} conf.usemargins
+	 * @property {boolean} conf.prod_entry_mode_is_predef
+	 * @property {boolean} conf.DISPLAY_MARGIN_RATES
+	 * @property {boolean} conf.DISPLAY_MARK_RATES
+	 * @property {boolean} conf.PRODUCT_USE_UNITS
+	 * @property {number} conf.inputalsopricewithtax
+	 * @property {boolean} conf.MAIN_NO_INPUT_PRICE_WITH_TAX
+	 * @property {boolean} conf.FCKEDITOR_ENABLE_DETAILS
+	 * @property {boolean} conf.MAIN_SALETAX_AUTOSWITCH_I_CS_FOR_INDIA
+	 * @property {boolean} conf.PRODUIT_CUSTOMER_PRICES_BY_QTY
+	 * @property {boolean} conf.PRODUIT_CUSTOMER_PRICES_BY_QTY_MULTIPRICES
+	 * @property {boolean} conf.PRODUCT_LOAD_EXTRAFIELD_INTO_OBJECTLINES
+	 * @property {boolean} conf.MAIN_DISABLE_EDIT_PREDEF_PRICEHT
+	 * @property {boolean} conf.MAIN_MULTILANGS
+	 * @property {boolean} conf.PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE
+	 * @property {int} conf.PRODUIT_AUTOFILL_DESC
+	 * @property {string} conf.token
+	 * @property {string} conf.newtoken
+	 *
+	 * @property {Object} url
+	 * @property {string} url.fetchProductUrl
+	 * @property {string} url.getSupplierPrices
+	 *
+	 * @property {Object} modules
+	 * @property {boolean} modules.multicurrency
+	 *
+	 * @property {Object} mySoc
+	 * @property {string|null} mySoc.country_code
+	 * @property {string|null} mySoc.state_code
+	 *
+	 * @property {Object} docObject
+	 * @property {string} docObject.table_element_line
+	 * @property {string} docObject.element
+	 * @property {string} docObject.multicurrency_code
+	 * @property {Object|false} docObject.thirdparty
+	 * @property {string} docObject.thirdparty.country_code
+	 * @property {string} docObject.thirdparty.state_code
+	 * @property {number} docObject.socid
+	 * @property {boolean} docObject.senderissupplier
+	 *
+	 * @property {Object} userRight
+	 * @property {Object} userRight.margins
+	 * @property {boolean} userRight.margins.creer
+	 *
+	 * @property {Object} langs
+	 * @property {string} langs.rateMustBeNumeric
+	 * @property {string} langs.markRateShouldBeLesserThan100
+	 */
+
+	/** @type {JsConf} */
+	const jsConf = <?php print json_encode($jsConf); ?>;
+	if(jsConf.conf.usemargins && jsConf.userRight.margins.creer){
+
+		/* Some js test when we click on button "Add" */
+		$(function() {
+			if (jsConf.conf.DISPLAY_MARGIN_RATES) {
+				$("input[name='np_marginRate']:first").on('blur', function(e) {
+					console.log("np_marginRate blur");
+					return checkFreeLine(e, "np_marginRate");
+				});
+			}
+
+			if (jsConf.conf.DISPLAY_MARK_RATES) {
+				$("input[name='np_markRate']:first").on('blur', function(e) {
+					console.log("np_markRate blur");
+					return checkFreeLine(e, "np_markRate");
+				});
+			}
 		});
 		<?php
 	}
@@ -823,8 +903,8 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 			jQuery('#trlinefordates').show();
 		});
 
-		<?php
-		if (!$freelines) { ?>
+		if (!jsConf.conf.freelines) {
+			console.log("emulate click on prod_entry_mode_predef");
 			jQuery("#prod_entry_mode_predef").click();
 			<?php
 		} else { ?>
