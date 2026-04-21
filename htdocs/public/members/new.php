@@ -4,7 +4,7 @@
  * Copyright (C) 2006-2013  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2012       Regis Houssin           <regis.houssin@inodbox.com>
  * Copyright (C) 2012       J. Fernando Lagrange    <fernando@demo-tic.org>
- * Copyright (C) 2018-2025  Frédéric France         <frederic.france@free.fr>
+ * Copyright (C) 2018-2026  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2018       Alexandre Spangaro      <aspangaro@open-dsi.fr>
  * Copyright (C) 2021       Waël Almoman            <info@almoman.com>
  * Copyright (C) 2022       Udo Tamm                <dev@dolibit.de>
@@ -172,9 +172,10 @@ function force_switch_entity($newEntity)
  * @param 	int    		$disablehead		More content into html header
  * @param 	string[]|string	$arrayofjs			Array of complementary js files
  * @param 	string[]|string	$arrayofcss			Array of complementary css files
+ * @param 	string			$ws					Website ref if we are called from a website
  * @return	void
  */
-function llxHeaderVierge($title, $head = "", $disablejs = 0, $disablehead = 0, $arrayofjs = [], $arrayofcss = [])  // @phan-suppress-current-line PhanRedefineFunction
+function llxHeaderVierge($title, $head = "", $disablejs = 0, $disablehead = 0, $arrayofjs = [], $arrayofcss = [], $ws = '')  // @phan-suppress-current-line PhanRedefineFunction
 {
 	global $conf, $langs, $mysoc;
 
@@ -213,6 +214,7 @@ function llxFooterVierge()  // @phan-suppress-current-line PhanRedefineFunction
 }
 
 
+//var_dump(GETPOST('firstname')); exit;
 
 /*
  * Actions
@@ -809,30 +811,34 @@ if (getDolGlobalString('MEMBER_SKIP_TABLE') || getDolGlobalString('MEMBER_NEWFOR
 
 						switch (morphy) {
 							case "phy":
-								/* $phyInput.prop({disabled: false, checked: true});
-								$morInput.prop({disabled: true, checked: false}); */
+								$phyInput.prop({disabled: false, checked: true});
+								$morInput.prop({disabled: true, checked: false});
 								$span1.addClass("member-individual-back").removeClass("nonature-back");
 								$span2.removeClass("member-company-back").addClass("nonature-back");
+								$("#phisicalinput").prop("checked", true);
 								$tdLast.addClass("fieldrequired");
 								$tdFirst.addClass("fieldrequired");
 								$tdCompany.removeClass("fieldrequired");
 								break;
 
 							case "mor":
-								/* $phyInput.prop({disabled: true, checked: false});
-								$morInput.prop({disabled: false, checked: true}); */
+								$phyInput.prop({disabled: true, checked: false});
+								$morInput.prop({disabled: false, checked: true});
 								$span2.addClass("member-company-back").removeClass("nonature-back");
 								$span1.removeClass("member-individual-back").addClass("nonature-back");
+								$("#moralinput").prop("checked", true);
 								$tdCompany.addClass("fieldrequired");
 								$tdLast.removeClass("fieldrequired");
 								$tdFirst.removeClass("fieldrequired");
 								break;
 
-							default:';
+							default:
+								$phyInput.prop({disabled: false});
+								$morInput.prop({disabled: false});';
 			if ($action != "subscription" && !GETPOST('morphy')) {
 				print '
-				$phyInput.prop({disabled: false, checked: false});
-				$morInput.prop({disabled: false, checked: false});
+				$phyInput.prop({checked: false});
+				$morInput.prop({checked: false});
 				$span1.removeClass("member-individual-back").addClass("nonature-back");
 				$span2.removeClass("member-company-back").addClass("nonature-back");';
 			}

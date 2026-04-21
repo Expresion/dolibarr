@@ -31,6 +31,13 @@
 
 // Load Dolibarr environment
 require '../main.inc.php';
+/**
+ * @var Conf $conf
+ * @var DoliDB $db
+ * @var HookManager $hookmanager
+ * @var Translate $langs
+ * @var User $user
+ */
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
@@ -40,14 +47,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/project/modules_project.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
-
-/**
- * @var Conf $conf
- * @var DoliDB $db
- * @var HookManager $hookmanager
- * @var Translate $langs
- * @var User $user
- */
 
 // Load translation files required by the page
 $langsLoad = array('projects', 'companies');
@@ -251,25 +250,27 @@ if (empty($reshook)) {
 				$error++;
 			}
 
-			$result = $object->create($user);
-			if (!$error && $result > 0) {
-				// Add myself as Owner Contact Selected in the form
-				$typeofcontact = GETPOST('typeofcontact');
-				$result = $object->add_contact($user->id, $typeofcontact, 'internal');
+			if (!$error) {
+				$result = $object->create($user);
+				if ($result > 0) {
+					// Add myself as Owner Contact Selected in the form
+					$typeofcontact = GETPOST('typeofcontact');
+					$result = $object->add_contact($user->id, $typeofcontact, 'internal');
 
-				// -3 means type not found (renamed, de-activated or deleted), so don't prevent creation if it has been the case
-				if ($result == -3) {
-					setEventMessage('ErrorPROJECTLEADERRoleMissingRestoreIt', 'errors');
-					$error++;
-				} elseif ($result < 0) {
+					// -3 means type not found (renamed, de-activated or deleted), so don't prevent creation if it has been the case
+					if ($result == -3) {
+						setEventMessage('ErrorPROJECTLEADERRoleMissingRestoreIt', 'errors');
+						$error++;
+					} elseif ($result < 0) {
+						$langs->load("errors");
+						setEventMessages($object->error, $object->errors, 'errors');
+						$error++;
+					}
+				} else {
 					$langs->load("errors");
 					setEventMessages($object->error, $object->errors, 'errors');
 					$error++;
 				}
-			} else {
-				$langs->load("errors");
-				setEventMessages($object->error, $object->errors, 'errors');
-				$error++;
 			}
 			if (!$error && !empty($object->id) > 0) {
 				// Category association

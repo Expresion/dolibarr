@@ -35,6 +35,11 @@
 
 -- V23 forgotten
 
+ALTER TABLE llx_categorie_project_task DROP FOREIGN KEY fk_categorie_project_task_rowid;
+-- VMYSQL4.1 DROP INDEX idx_categorie_project_fk_task ON llx_categorie_project_task;
+-- VPGSQL8.2 DROP INDEX idx_categorie_project_fk_task;
+ALTER TABLE llx_categorie_project_task ADD INDEX idx_categorie_project_fk_task (fk_project_task);
+ALTER TABLE llx_categorie_project_task ADD CONSTRAINT fk_categorie_project_task_rowid FOREIGN KEY (fk_project_task) REFERENCES llx_projet_task (rowid);
 
 -- V24 migration
 
@@ -150,5 +155,90 @@ ALTER TABLE llx_blockedlog ADD COLUMN pos_source varchar(32) DEFAULT '';
 
 ALTER TABLE llx_website_page ADD COLUMN keep_history integer DEFAULT 5;
 ALTER TABLE llx_website_page ADD COLUMN metarobots varchar(128) after keywords;
+
+
+CREATE TABLE llx_accounting_balance_snapshot (
+	rowid              integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	entity             integer DEFAULT 1 NOT NULL,
+	fk_fiscalyear      integer NOT NULL,
+	account_number     varchar(32) NOT NULL,
+	account_label      varchar(255) NOT NULL,
+	subledger_account  varchar(32),
+	subledger_label    varchar(255),
+	debit              double(24,8) NOT NULL default 0,
+	credit             double(24,8) NOT NULL default 0,
+	date_snapshot      datetime,
+	tms                timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=innodb;
+
+ALTER TABLE llx_accounting_balance_snapshot ADD UNIQUE INDEX uk_accounting_balance_snapshot(entity, fk_fiscalyear, account_number, subledger_account);
+
+ALTER TABLE llx_accounting_balance_snapshot ADD INDEX idx_accounting_balance_snapshot_account (entity, fk_fiscalyear, account_number, debit, credit);
+ALTER TABLE llx_accounting_balance_snapshot ADD INDEX idx_accounting_balance_snapshot_subaccount (entity, fk_fiscalyear, subledger_account, debit, credit);
+
+UPDATE llx_rights_def SET perms = 'manage_advance' WHERE module = 'ticket' AND perms = 'manage';
+
+-- Switch all crabe templates into sponge
+UPDATE llx_facture SET model_pdf = 'sponge' WHERE model_pdf = 'crabe';
+UPDATE llx_facture_rec SET modelpdf = 'sponge' WHERE modelpdf = 'crabe';
+UPDATE llx_const SET value = 'sponge' WHERE value = 'crabe' AND name ='FACTURE_ADDON_PDF';
+UPDATE llx_document_model SET nom = 'sponge' WHERE nom = 'crabe' AND type = 'invoice' AND NOT EXISTS (SELECT nom FROM (SELECT nom, entity FROM llx_document_model WHERE nom = 'sponge' AND type = 'invoice') as subquery WHERE subquery.entity = entity);
+DELETE FROM llx_document_model WHERE nom = 'crabe' AND type = 'invoice';
+
+ALTER TABLE llx_salary ADD COLUMN model_pdf varchar(255) DEFAULT NULL;
+
+ALTER TABLE llx_extrafields ADD COLUMN showintooltip integer DEFAULT 0;
+
+ALTER TABLE llx_societe_remise_except ADD COLUMN amount_localtax1 double(24,8) DEFAULT 0 NOT NULL AFTER amount_tva;
+ALTER TABLE llx_societe_remise_except ADD COLUMN amount_localtax2 double(24,8) DEFAULT 0 NOT NULL AFTER amount_localtax1;
+ALTER TABLE llx_societe_remise_except ADD COLUMN localtax1_tx double(7,4)  DEFAULT 0 NOT NULL AFTER tva_tx;
+ALTER TABLE llx_societe_remise_except ADD COLUMN localtax1_type varchar(10)  NULL AFTER localtax1_tx;
+ALTER TABLE llx_societe_remise_except ADD COLUMN localtax2_tx double(7,4)  DEFAULT 0 NOT NULL AFTER localtax1_type;
+ALTER TABLE llx_societe_remise_except ADD COLUMN localtax2_type varchar(10)  NULL AFTER localtax2_tx;
+
+INSERT INTO llx_c_email_templates (entity, module, type_template, lang, private, fk_user, datec, label, position, enabled, active, topic, content, content_lines, joinfiles) VALUES (0, 'holiday', 'holiday', '', 0, null, null, '(HolidayHrInformationsPreviousMonth)', 100,'isModEnabled("holiday")', 1, '__(HolidayHrInformationsPreviousMonthTopic)__', '__(Hello)__<br><br>__(HolidayHrInformationsPreviousMonthContent)__:<br>__HOLIDAY_ARRAY_PER_EMPLOYEE_FOR_PERIOD__<br><br>__SENDEREMAIL_SIGNATURE__', null, 0);
+
+ALTER TABLE llx_c_ticket_category ADD COLUMN fk_ticket_type integer NULL;
+
+UPDATE llx_const SET name = __ENCRYPT('ACCOUNTANCY_AUXACCOUNT_USE_SEARCH_TO_SELECT')__ WHERE __DECRYPT('name')__ = 'ACCOUNTANCY_COMBO_FOR_AUX';
+
+ALTER TABLE llx_prelevement_bons ADD COLUMN fk_user_modif integer;
+
+
+UPDATE llx_cronjob set test = 'isModEnabled("agenda")' WHERE test = '$conf->agenda->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("invoice")' WHERE test = '$conf->facture->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("holiday")' WHERE test = '$conf->holiday->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("member")' WHERE test = '$conf->adherent->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("partnership")' WHERE test = '$conf->partnership->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("emailcollector")' WHERE test = '$conf->emailcollector->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("project")' WHERE test = '$conf->projet->enabled';
+-- Work only with very recent version of mysql UPDATE llx_cronjob SET test = REGEXP_REPLACE(test, '\\$conf->([^ ]+)->enabled', 'isModEnabled("$1")');
+UPDATE llx_cronjob set test = 'isModEnabled("sellyoursaas")' WHERE test = '$conf->sellyoursaas->enabled';
+UPDATE llx_cronjob set test = 'isModEnabled("scaninvoices")' WHERE test = '$conf->scaninvoices->enabled';
+
+ALTER TABLE llx_categorie_project_task DROP FOREIGN KEY fk_categorie_project_task_rowid;
+ALTER TABLE llx_categorie_project_task ADD CONSTRAINT fk_categorie_project_task_rowid FOREIGN KEY (fk_project_task) REFERENCES llx_projet_task (rowid);
+
+
+create table llx_product_lang_extrafields
+(
+  rowid                     integer AUTO_INCREMENT PRIMARY KEY,
+  tms                       timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  fk_object                 integer NOT NULL,
+  import_key                varchar(14)                          -- import key
+) ENGINE=innodb;
+ALTER TABLE llx_product_lang_extrafields ADD INDEX idx_product_lang_fk_object(fk_object);
+
+CREATE TABLE llx_categorie_lang_extrafields
+(
+  rowid                     integer AUTO_INCREMENT PRIMARY KEY,
+  tms                       timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  fk_object                 integer NOT NULL,
+  import_key                varchar(14)                          		-- import key
+) ENGINE=innodb;
+ALTER TABLE llx_categorie_lang_extrafields ADD INDEX idx_categorie_lang_fk_object(fk_object);
+
+ALTER TABLE llx_adherent_type ADD COLUMN minimumamount double(24,8) DEFAULT NULL AFTER caneditamount;
+ALTER TABLE llx_adherent_type ADD COLUMN amountformuladescription text AFTER minimumamount;
 
 -- end of migration
