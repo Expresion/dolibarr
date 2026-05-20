@@ -449,7 +449,7 @@ class pdf_octopus extends ModelePDFFactures
 				$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
 				$pdf->SetSubject($outputlangs->transnoentities("PdfInvoiceSituationTitle"));
 				$pdf->SetCreator("Dolibarr ".DOL_VERSION);
-				$pdf->SetAuthor($mysoc->name.($user->id > 0 ? ' - '.$outputlangs->convToOutputCharset($user->getFullName($outputlangs)) : ''));
+				$pdf->SetAuthor($mysoc->name.($user->id > 0 ? ' - '.$outputlangs->convToOutputCharset($user->getAnonymisableFullName($outputlangs)) : ''));
 				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("PdfInvoiceTitle")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
 				if (getDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION')) {
 					$pdf->SetCompression(false);
@@ -479,27 +479,19 @@ class pdf_octopus extends ModelePDFFactures
 				$nbProduct = 0;
 				$nbService = 0;
 				for ($i = 0; $i < $nblines; $i++) {
-					if ($object->lines[$i]->remise_percent) {
+					$line = $object->lines[$i];
+					if ($line->remise_percent) {
 						$this->atleastonediscount++;
 					}
 
-					// Do not take into account lines of the type “deposit.”
-					$is_deposit = false;
-					$reg = array();
-					if (preg_match('/^\((.*)\)$/', $object->lines[$i]->desc, $reg)) {
-						if ($reg[1] == 'DEPOSIT') {
-							$is_deposit = true;
-						}
-					}
-
 					// If DEPOSIT, this line is completely ignored for calculations.
-					if ($is_deposit) {
+					if ($line->isDepositLine()) {
 						continue;
 					}
 
 					// determine category of operation
 					if ($categoryOfOperation < 2) {
-						$lineProductType = $object->lines[$i]->product_type;
+						$lineProductType = $line->product_type;
 						if ($lineProductType == Product::TYPE_PRODUCT) {
 							$nbProduct++;
 						} elseif ($lineProductType == Product::TYPE_SERVICE) {
@@ -1821,7 +1813,7 @@ class pdf_octopus extends ModelePDFFactures
 					$pdf->SetTextColor(40, 40, 40);
 					$pdf->SetFillColor(255, 255, 255);
 
-					$retainedWarranty = $object->getRetainedWarrantyAmount();
+					$retainedWarranty = $object->getRetainedWarrantyAmount('MT');
 					$billedWithRetainedWarranty = $object->total_ttc - $retainedWarranty;
 
 					// Billed - retained warranty
@@ -2075,10 +2067,7 @@ class pdf_octopus extends ModelePDFFactures
 			$title = $outputlangs->transnoentities("InvoiceAvoir");
 		}
 		if ($object->type == 3) {
-			$title = $outputlangs->transnoentities("InvoiceDeposit");
-		}
-		if ($object->type == 4) {
-			$title = $outputlangs->transnoentities("InvoiceProForma");
+			$title = $outputlangs->transnoentities("PdfInvoiceDepositTitle");
 		}
 		if ($this->situationinvoice) {
 			$outputlangs->loadLangs(array("other"));
@@ -3117,7 +3106,7 @@ class pdf_octopus extends ModelePDFFactures
 			}
 
 			if (! empty($previousInvoice->retained_warranty) && !getDolGlobalString('USE_RETAINED_WARRANTY_ONLY_FOR_SITUATION_FINAL')) {
-				$retenue_garantie_anterieure += $previousInvoice->getRetainedWarrantyAmount();
+				$retenue_garantie_anterieure += $previousInvoice->getRetainedWarrantyAmount('MT');
 			}
 
 			// grand total
@@ -3379,7 +3368,7 @@ class pdf_octopus extends ModelePDFFactures
 		}
 
 		// Retained warranty
-		$retenue_garantie = $object->getRetainedWarrantyAmount();
+		$retenue_garantie = $object->getRetainedWarrantyAmount('MT');
 		if ($retenue_garantie == -1) {
 			$retenue_garantie = 0;
 		}

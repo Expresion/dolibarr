@@ -56,8 +56,6 @@ if (!defined('MAIN_ALREADY_INCLUDED')) {
 /**
  * @var Conf $conf
  * @var Translate $langs
- *
- * @var string $dolibarr_nocache
  */
 
 
@@ -68,11 +66,7 @@ if (!defined('MAIN_ALREADY_INCLUDED')) {
 	// Define javascript type
 	top_httphead('text/javascript; charset=UTF-8');
 	// Important: Following code is to avoid page request by browser and PHP CPU at each Dolibarr page access.
-	if (empty($dolibarr_nocache)) {
-		header('Cache-Control: max-age=10800, public, must-revalidate');
-	} else {
-		header('Cache-Control: no-cache');
-	}
+	header('Cache-Control: max-age=10800, public, must-revalidate');
 }
 
 
@@ -1030,16 +1024,17 @@ function confirmConstantAction(action, url, code, input, box, entity, yesButton,
 /**
  * Function to output a dialog box for copy/paste
  *
- * @param	text	Text to put into copy/paste area
- * @param	text2	Text to put under the copy/paste area
+ * @param	text		Text to put into copy/paste area
+ * @param	text2		Text to put under the copy/paste area
+ * @param   popupTitle	Text to show as title
  */
-function copyToClipboard(text,text2)
+function copyToClipboard(text, text2, popupTitle = '')
 {
 	text = text.replace(/<br>/g,"\n");
 	var newElem = '<textarea id="coordsforpopup" style="border: none; width: 90%; height: 120px;">'+text+'</textarea><br><br>'+text2;
 	/* alert(newElem); */
 	$("#dialogforpopup").html(newElem);
-	$("#dialogforpopup").dialog();
+	$("#dialogforpopup").dialog({title: popupTitle});
 	$("#coordsforpopup").select();
 
 	return false;

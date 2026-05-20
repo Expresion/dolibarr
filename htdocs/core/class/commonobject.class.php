@@ -916,11 +916,6 @@ abstract class CommonObject
 
 
 	/**
-	 * @var int 		Populated by setRetainedWarrantyPaymentTerms()
-	 */
-	public $retained_warranty_fk_cond_reglement;
-
-	/**
 	 * @var int 		Populated by setWarehouse()
 	 */
 	public $warehouse_id;
@@ -3269,37 +3264,6 @@ abstract class CommonObject
 	}
 
 	/**
-	 *  Change the retained warranty payments terms
-	 *
-	 *  @param		int		$id		Id of new payment terms
-	 *  @return		int				>0 if OK, <0 if KO
-	 */
-	public function setRetainedWarrantyPaymentTerms($id)
-	{
-		dol_syslog(get_class($this).'::setRetainedWarrantyPaymentTerms('.$id.')');
-		if ($this->status >= 0 || $this->element == 'societe') {
-			$fieldname = 'retained_warranty_fk_cond_reglement';
-
-			$sql = 'UPDATE '.$this->db->prefix().$this->table_element;
-			$sql .= " SET ".$this->db->sanitize($fieldname)." = ".((int) $id);
-			$sql .= ' WHERE rowid='.((int) $this->id);
-
-			if ($this->db->query($sql)) {
-				$this->retained_warranty_fk_cond_reglement = $id;
-				return 1;
-			} else {
-				dol_syslog(get_class($this).'::setRetainedWarrantyPaymentTerms Error '.$sql.' - '.$this->db->error());
-				$this->error = $this->db->error();
-				return -1;
-			}
-		} else {
-			dol_syslog(get_class($this).'::setRetainedWarrantyPaymentTerms, status of the object is incompatible');
-			$this->error = 'Status of the object is incompatible '.$this->status;
-			return -2;
-		}
-	}
-
-	/**
 	 *	Define delivery address
 	 *  @deprecated
 	 *
@@ -5283,7 +5247,7 @@ abstract class CommonObject
 				if ($obj->nb > 0) {
 					$langs->load("errors");
 					//print 'Found into table '.$table.', type '.$langs->transnoentitiesnoconv($elementname).', haschild='.$haschild;
-					$haschild += $obj->nb;
+					$haschild += (int) $obj->nb;
 					if (is_numeric($element)) {	// very old usage array('table1', 'table2', ...)
 						$this->errors[] = $langs->transnoentitiesnoconv("ErrorRecordHasAtLeastOneChildOfType", method_exists($this, 'getNomUrl') ? $this->getNomUrl() : $this->ref, $table);
 					} elseif (is_string($element)) { // old usage array('table1' => 'TranslateKey1', 'table2' => 'TranslateKey2', ...)
@@ -8072,7 +8036,7 @@ abstract class CommonObject
 			if (!empty($value)) {		// $value in memory is a php numeric, we format it into user number format.
 				$value = price($value);
 			}
-			$out = '<input type="text" class="flat '.$morecss.' maxwidthonsmartphone" name="'.$keyprefix.$key.$keysuffix.'" id="'.$keyprefix.$key.$keysuffix.'" value="'.$value.'" '.($moreparam ? $moreparam : '').'> '.$langs->getCurrencySymbol($conf->currency);
+			$out = '<input type="text" class="flat '.$morecss.' maxwidthonsmartphone" name="'.$keyprefix.$key.$keysuffix.'" id="'.$keyprefix.$key.$keysuffix.'" value="'.$value.'" '.($moreparam ? $moreparam : '').'> <span class="opacitymedium">'.$langs->getCurrencySymbol($conf->currency).'</span>';
 		} elseif ($type == 'stars') {
 			$out = '<input type="hidden" class="flat '.$morecss.'" name="'.$keyprefix.$key.$keysuffix.'" id="'.$keyprefix.$key.$keysuffix.'" value="'.dol_escape_htmltag($value).'"'.($moreparam ? $moreparam : '').($autofocusoncreate ? ' autofocus' : '').'>';
 			$out .= '<div class="star-selection" id="'.$keyprefix.$key.$keysuffix.'_selection">';
@@ -9664,6 +9628,8 @@ abstract class CommonObject
 								}
 							} elseif (in_array($extrafields->attributes[$this->table_element]['type'][$key], array('int'))) {
 								$value = (!empty($this->array_options["options_".$key]) || (isset($this->array_options["options_".$key]) && $this->array_options["options_".$key] === '0')) ? $this->array_options["options_".$key] : '';
+							} elseif (in_array($extrafields->attributes[$this->table_element]['type'][$key], array('varchar', 'char'))) {
+								$value = (isset($this->array_options["options_".$key]) && $this->array_options["options_".$key] !== '') ? $this->array_options["options_".$key] : '';
 							} else {
 								$value = (!empty($this->array_options["options_".$key]) ? $this->array_options["options_".$key] : ''); // No GET, no POST, no default value, so we take value of object.
 							}

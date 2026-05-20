@@ -1024,8 +1024,14 @@ class Societe extends CommonObject
 		$this->code_compta_client = trim($this->code_compta_client ?? '');
 
 		$this->accountancy_code_customer_general = trim($this->accountancy_code_customer_general ?? '');
+		if ($this->accountancy_code_customer_general === '-1') {
+			$this->accountancy_code_customer_general = '';
+		}
 		$this->accountancy_code_customer = trim((string) $this->code_compta_client);
 		$this->accountancy_code_supplier_general = trim($this->accountancy_code_supplier_general ?? '');
+		if ($this->accountancy_code_supplier_general === '-1') {
+			$this->accountancy_code_supplier_general = '';
+		}
 		$this->accountancy_code_supplier = trim((string) $this->code_compta_fournisseur);
 		$this->accountancy_code_buy = trim((string) $this->accountancy_code_buy);
 		$this->accountancy_code_sell = trim((string) $this->accountancy_code_sell);
@@ -1537,8 +1543,14 @@ class Societe extends CommonObject
 		}
 
 		$this->accountancy_code_customer_general = trim((string) $this->accountancy_code_customer_general);
+		if ($this->accountancy_code_customer_general === '-1') {
+			$this->accountancy_code_customer_general = '';
+		}
 		$this->code_compta_client = trim((string) $this->code_compta_client);
 		$this->accountancy_code_supplier_general = trim((string) $this->accountancy_code_supplier_general);
+		if ($this->accountancy_code_supplier_general === '-1') {
+			$this->accountancy_code_supplier_general = '';
+		}
 		$this->code_compta_fournisseur = trim((string) $this->code_compta_fournisseur);
 
 		// Check parameters. More tests are done later in the ->verify()
@@ -1703,6 +1715,7 @@ class Societe extends CommonObject
 			$sql .= ",cond_reglement_supplier = ".(!empty($this->cond_reglement_supplier_id) ? "'".$this->db->escape((string) $this->cond_reglement_supplier_id)."'" : "null");
 			$sql .= ",transport_mode_supplier = ".(!empty($this->transport_mode_supplier_id) ? "'".$this->db->escape((string) $this->transport_mode_supplier_id)."'" : "null");
 			$sql .= ",fk_shipping_method = ".(!empty($this->shipping_method_id) ? "'".$this->db->escape((string) $this->shipping_method_id)."'" : "null");
+			$sql .= ",fk_account = ".($this->fk_account > 0 ? (int) $this->fk_account : "null");
 
 			$sql .= ",client = ".(!empty($this->client) ? $this->client : 0);
 			$sql .= ",fournisseur = ".(!empty($this->fournisseur) ? $this->fournisseur : 0);
@@ -5736,7 +5749,7 @@ class Societe extends CommonObject
 	 *    @param	int         $list       0:Return array contains all properties, 1:Return array contains just id
 	 *    @param    string      $code       Filter on this code of contact type ('SHIPPING', 'BILLING', ...)
 	 *	  @param    string      $element    Filter on this element of default contact type ('facture', 'propal', 'commande' ...)
-	 *    @return	array|int		        Array of contacts, -1 if error
+	 *    @return int[]|array<array{source:string,socid:int,id:int,nom:string,civility:string,lastname:string,firstname:string,email:string,login:string,photo:string,statuscontact:string,rowid:int,code:string,element:string,libelle:string,status:string,fk_c_type_contact:int}>|-1		Array of contacts, -1 if error
 	 */
 	public function getContacts($list = 0, $code = '', $element = '')
 	{
@@ -5779,8 +5792,8 @@ class Societe extends CommonObject
 					$libelle_type = ($langs->trans($transkey) != $transkey ? $langs->trans($transkey) : $obj->type_label);
 					$tab[$obj->id] = array(
 						'source' => $obj->source,
-						'socid' => $obj->socid,
-						'id' => $obj->id,
+						'socid' => (int) $obj->socid,
+						'id' => (int) $obj->id,
 						'nom' => $obj->lastname, // For backward compatibility
 						'civility' => $obj->civility,
 						'lastname' => $obj->lastname,
@@ -5789,17 +5802,16 @@ class Societe extends CommonObject
 						'login' => (empty($obj->login) ? '' : $obj->login),
 						'photo' => (empty($obj->photo) ? '' : $obj->photo),
 						'statuscontact' => $obj->statuscontact,
-						'rowid' => $obj->rowid,
+						'rowid' => (int) $obj->rowid,
 						'code' => $obj->code,
 						'element' => $obj->element,
 						'libelle' => $libelle_type,
 						'status' => $obj->statuslink,
-						'fk_c_type_contact' => $obj->fk_c_type_contact
+						'fk_c_type_contact' => (int) $obj->fk_c_type_contact
 					);
 				} else {
-					$tab[$obj->id] = $obj->id;
+					$tab[$obj->id] = (int) $obj->id;
 				}
-
 				$i++;
 			}
 
