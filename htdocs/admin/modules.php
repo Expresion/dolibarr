@@ -8,8 +8,8 @@
  * Copyright (C) 2015		Jean-François Ferry		<jfefe@aternatik.fr>
  * Copyright (C) 2015		Raphaël Doursenaud		<rdoursenaud@gpcsolutions.fr>
  * Copyright (C) 2018		Nicolas ZABOURI 		<info@inovea-conseil.com>
- * Copyright (C) 2021-2025  Frédéric France         <frederic.france@free.fr>
- * Copyright (C) 2024		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2021-2026  Frédéric France         <frederic.france@free.fr>
+ * Copyright (C) 2024-2026	MDW						<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2026		Charlene Benke	 		<charlene@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,13 @@
 
 if (!defined('CSRFCHECK_WITH_TOKEN') && (empty($_GET['action']) || $_GET['action'] != 'reset')) {	// We force security except to disable modules so we can do it if a problem occurs on a module
 	define('CSRFCHECK_WITH_TOKEN', '1'); // Force use of CSRF protection with tokens even for GET
+}
+
+// The modules list is a setup hub: force the menu context to "home" when the
+// caller did not provide one, so the previously visited module's menu does not
+// stick when the user comes back to this page (issue 38058).
+if (!isset($_GET['mainmenu']) && !isset($_POST['mainmenu'])) {
+	$_GET['mainmenu'] = 'home';
 }
 
 // Load Dolibarr environment
@@ -207,15 +214,44 @@ if (GETPOST('buttonreset', 'alpha')) {
 if ($action == 'install' && $allowonlineinstall) {
 	$error = 0;
 	$modulenameval = '';
+
+	$isExternalDownload = 0;
+	$producttoinstall = GETPOST('producttoinstall', 'array');
+
 	// $original_file should match format module_modulename-x.y[.z].zip
-	$tmpfile = $_FILES['fileinstall']['tmp_name'];
+	if ($producttoinstall) {
+		$isExternalDownload = 1;
+		$tmpExternalModuleZipFile = $remotestore->getModuleZIP($producttoinstall); // Return the zip file path.
+		if ($tmpExternalModuleZipFile) {
+			// We fill $_FILES with the zip file we just created to reuse the same code as if file was uploaded by user
+			$_FILES['fileinstall'] = array(
+				'name' => basename($tmpExternalModuleZipFile),
+				'type' => 'application/zip',
+				'tmp_name' => $tmpExternalModuleZipFile,
+				'error' => 0,
+				'size' => filesize($tmpExternalModuleZipFile)
+			);
+		}
+	}
+
+	$tmpfile = (string) $_FILES['fileinstall']['tmp_name'];
 	$original_file = basename($_FILES["fileinstall"]["name"]);
 	$original_file = preg_replace('/\s*\(\d+\)\.zip$/i', '.zip', $original_file);
 	$newfile = dol_sanitizePathName($conf->admin->dir_temp.'/'.$original_file.'/'.$original_file);
 
+	if (empty($tmpfile)) {
+		$langs->load("errors");
+		setEventMessages($langs->trans("ErrorFileNotUploaded"), null, 'errors');
+		$error++;
+	}
+
 	if (!$original_file) {
 		$langs->load("Error");
-		setEventMessages($langs->trans("ErrorModuleFileRequired"), null, 'warnings');
+		if ($isExternalDownload) {
+			setEventMessages($langs->trans("ErrorFailToDownloadModuleFromSource", $producttoinstall['name']), null, 'warnings');
+		} else {
+			setEventMessages($langs->trans("ErrorModuleFileRequired"), null, 'warnings');
+		}
 		$error++;
 	} else {
 		if (!$error && !preg_match('/\.zip$/i', $original_file)) {
@@ -226,11 +262,6 @@ if ($action == 'install' && $allowonlineinstall) {
 		if (!$error && !preg_match('/^(module[a-zA-Z0-9]*_|theme_|).*\-([0-9][0-9\.]*)(\s\(\d+\)\s)?\.zip$/i', $original_file)) {
 			$langs->load("errors");
 			setEventMessages($langs->trans("ErrorFilenameDosNotMatchDolibarrPackageRules", $original_file, 'modulename-x[.y.z].zip'), null, 'errors');
-			$error++;
-		}
-		if (empty($tmpfile)) {
-			$langs->load("errors");
-			setEventMessages($langs->trans("ErrorFileNotUploaded"), null, 'errors');
 			$error++;
 		}
 	}
@@ -247,7 +278,7 @@ if ($action == 'install' && $allowonlineinstall) {
 			dol_mkdir($conf->admin->dir_temp.'/'.$tmpdir);
 		}
 
-		$result = dol_move_uploaded_file($tmpfile, $newfile, 1, 0, $_FILES['fileinstall']['error']);
+		$result = dol_move_uploaded_file($tmpfile, $newfile, 1, 0, $_FILES['fileinstall']['error'], 0, 'addedfile', '', $isExternalDownload ? 1 : 0);
 		if ((int) $result > 0) {
 			$resultuncompress = dol_uncompress($newfile, $conf->admin->dir_temp.'/'.$tmpdir);
 
@@ -284,12 +315,12 @@ if ($action == 'install' && $allowonlineinstall) {
 					if (is_resource($handle)) {
 						while (($file = readdir($handle)) !== false) {
 							print $dir." ".$file."\n<br>";
-							if (is_readable($dir.$file) && substr($file, 0, 3) == 'mod' && substr($file, dol_strlen($file) - 10) == '.class.php') {
-								$modName = substr($file, 0, dol_strlen($file) - 10);
+							if (is_readable($dir.$file) && dol_substr($file, 0, 3) == 'mod' && dol_substr($file, dol_strlen($file) - 10) == '.class.php') {
+								$modName = dol_substr($file, 0, dol_strlen($file) - 10);
 								if ($modName) {
 									try {
 										$res = include_once $dir.$file; // A class already exists in a different file will send a non catchable fatal error.
-										$modName = substr($file, 0, dol_strlen($file) - 10);
+										$modName = dol_substr($file, 0, dol_strlen($file) - 10);
 										if ($modName) {
 											if (class_exists($modName)) {
 												$objMod = new $modName($db);
@@ -401,8 +432,7 @@ if ($action == 'install' && $allowonlineinstall) {
 			'search_nature' => '-1',
 			'search_version' => '-1'
 		);
-		$queryString = http_build_query($searchParams);
-		$redirectUrl = DOL_URL_ROOT . '/admin/modules.php?' . $queryString;
+		$redirectUrl = dolBuildUrl(DOL_URL_ROOT . '/admin/modules.php', $searchParams);
 
 		$message = $langs->trans("SetupIsReadyForUse", $redirectUrl, $langs->transnoentitiesnoconv("Home").' - '.$langs->transnoentitiesnoconv("Setup").' - '.$langs->transnoentitiesnoconv("Modules"));
 
@@ -539,8 +569,8 @@ foreach ($modulesdir as $dir) {
 	if (is_resource($handle)) {
 		while (($file = readdir($handle)) !== false) {
 			//print "$i ".$file."\n<br>";
-			if (is_readable($dir.$file) && substr($file, 0, 3) == 'mod' && substr($file, dol_strlen($file) - 10) == '.class.php') {
-				$modName = substr($file, 0, dol_strlen($file) - 10);
+			if (is_readable($dir.$file) && dol_substr($file, 0, 3) == 'mod' && dol_substr($file, dol_strlen($file) - 10) == '.class.php') {
+				$modName = dol_substr($file, 0, dol_strlen($file) - 10);
 
 				if ($modName) {
 					if (!empty($modNameLoaded[$modName])) {   // In cache of already loaded modules ?
@@ -751,7 +781,7 @@ $head = modules_prepare_head($nbofactivatedmodules, count($modules), $nbmodulesn
 if ($mode == 'common' || $mode == 'commonkanban') {
 	dol_set_focus('#search_keyword');
 
-	print '<form method="POST" id="searchFormList" action="'.dolBuildUrl($_SERVER["PHP_SELF"]).'">';
+	print '<form method="POST" id="searchFormList" action="'.dolBuildUrl($_SERVER["PHP_SELF"]).'" spellcheck="false">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	if (isset($optioncss) && $optioncss != '') {
 		print '<input type="hidden" name="optioncss" value="'.$optioncss.'">';
@@ -774,7 +804,15 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 	$moreforfilter = '<div class="valignmiddle">';
 
 	$moreforfilter .= '<div class="floatright right pagination paddingtop --module-list"><ul><li>';
-	$moreforfilter .= dolGetButtonTitle($langs->trans('CheckForModuleUpdate'), $langs->trans('CheckForModuleUpdate').'<br><br>'.img_warning('', '', 'paddingright').$langs->trans('CheckForModuleUpdateHelp').' '.$langs->trans('CheckForModuleUpdateHelp2', DolibarrModules::URL_FOR_BLACKLISTED_MODULES).'<br>'.$langs->trans("YourIPWillBeRevealedToThisExternalProviders"), 'fa fa-sync', $_SERVER["PHP_SELF"].'?action=checklastversion&token='.newToken().'&mode='.$mode.$param, '', 1, array('morecss' => 'reposition'));
+	$moreforfilter .= dolGetButtonTitle(
+		$langs->trans('CheckForModuleUpdate'),
+		$langs->trans('CheckForModuleUpdate').'<br><br>'.img_warning('', '', 'paddingright').$langs->trans('CheckForModuleUpdateHelp').' '.$langs->trans('CheckForModuleUpdateHelp2', DolibarrModules::URL_FOR_BLACKLISTED_MODULES).'<br>'.$langs->trans("YourIPWillBeRevealedToThisExternalProviders"),
+		'fa fa-sync',
+		$_SERVER["PHP_SELF"].'?action=checklastversion&token='.newToken().'&mode='.$mode.$param,
+		'',
+		1,
+		array('morecss' => 'reposition')
+	);
 	$moreforfilter .= dolGetButtonTitleSeparator();
 	$moreforfilter .= dolGetButtonTitle($langs->trans('ViewList'), '', 'fa fa-bars imgforviewmode', $_SERVER["PHP_SELF"].'?mode=common'.$param, '', ($mode == 'common' ? 2 : 1), array('morecss' => 'reposition'));
 	$moreforfilter .= dolGetButtonTitle($langs->trans('ViewKanban'), '', 'fa fa-th-list imgforviewmode', $_SERVER["PHP_SELF"].'?mode=commonkanban'.$param, '', ($mode == 'commonkanban' ? 2 : 1), array('morecss' => 'reposition'));
@@ -918,12 +956,19 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 		// We discard showing according to filters
 		if ($search_keyword) {
 			$qualified = 0;
-			if (preg_match('/'.preg_quote($search_keyword, '/').'/i', $modulename)
-				|| preg_match('/'.preg_quote($search_keyword, '/').'/i', $moduletechnicalname)
-				|| ($moduledesc && preg_match('/'.preg_quote($search_keyword, '/').'/i', $moduledesc))
-				|| ($moduledesclong && preg_match('/'.preg_quote($search_keyword, '/').'/i', $moduledesclong))
-				|| ($moduleauthor && preg_match('/'.preg_quote($search_keyword, '/').'/i', $moduleauthor))
-			) {
+			$search_keyword_array = explode(' ', $search_keyword);
+			$foundkeyword = 1;
+			foreach ($search_keyword_array as $word) {
+				if (!preg_match('/'.preg_quote($word, '/').'/i', $modulename)
+					&& !preg_match('/'.preg_quote($word, '/').'/i', $moduletechnicalname)
+					&& !($moduledesc && preg_match('/'.preg_quote($word, '/').'/i', $moduledesc))
+					&& !($moduledesclong && preg_match('/'.preg_quote($word, '/').'/i', $moduledesclong))
+					&& !($moduleauthor && preg_match('/'.preg_quote($word, '/').'/i', $moduleauthor))
+				) {
+					$foundkeyword = 0;
+				}
+			}
+			if ($foundkeyword) {
 				$qualified = 1;
 			}
 			if (!$qualified) {
@@ -1217,7 +1262,7 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 				}
 
 				$urltogo = $_SERVER["PHP_SELF"].'?id='.$objMod->numero.'&token='.newToken().'&module_position='.$module_position.'&action=set&token='.newToken().'&value='.$modName.'&mode='.$mode.$param;
-				$popupWidth = 500;
+				$popupWidth = 600;
 				$popupHeight = 300;
 				$codeenabledisable .= '<!-- Message to show: '.$warningmessage.' -->'."\n";
 				$codeenabledisable .= '<a class="reposition" id="idqualified'.$objMod->numero.'" data-alreadyclicked="0" href="'.$urltogo.'"';
@@ -1269,7 +1314,7 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 			print '<a href="javascript:document_preview(\''.DOL_URL_ROOT.'/admin/modulehelp.php?id='.((int) $objMod->numero).'\',\'text/html\',\''.dol_escape_js($langs->trans("Module")).'\')">';
 			print img_picto(($objMod->isCoreOrExternalModule() == 'external' ? $langs->trans("ExternalModule").' - ' : '').$langs->trans("ClickToShowDescription"), $imginfo, '', 0, 0, 0, '', 'purple');
 			print '</a>';
-			print ($timestoinit[$modName] > 500 ? img_picto($langs->trans('InitModuleIsSlow'), 'fa-exclamation-circle') : '');
+			print($timestoinit[$modName] > 500 ? img_picto($langs->trans('InitModuleIsSlow'), 'fa-exclamation-circle') : '');
 			print '</td>';
 
 			// Version
@@ -1425,7 +1470,7 @@ if ($mode == 'marketplace') {
 
 		$categories_tree = $remotestore->getCategories($options['categorie']);		// Call API to get the categories
 
-		$products_list = $remotestore->getProducts($options);	// Get list of product from all sources
+		$products_list = $remotestore->getProducts($options, $modules);	// Get list of product from all sources
 
 		$previouslink = $remotestore->get_previous_link();
 
@@ -1434,7 +1479,7 @@ if ($mode == 'marketplace') {
 
 		print '<div class="liste_titre liste_titre_bydiv centpercent"><div class="">';
 
-		print '<form method="POST" class="centpercent" id="searchFormList" action="'.$remotestore->url.'">'; ?>
+		print '<form method="POST" class="centpercent" id="searchFormList" action="'.$remotestore->url.'" spellcheck="false">'; ?>
 					<input type="hidden" name="token" value="<?php echo newToken(); ?>">
 					<input type="hidden" name="mode" value="marketplace">
 					<input type="hidden" name="page_y" value="">
@@ -1454,11 +1499,11 @@ if ($mode == 'marketplace') {
 					</div>
 		<?php
 			$totalnboflines = '<span class="product-count opacitymedium paddingleft">';
-			$totalnboflines .= $langs->trans("itemFound", $remotestore->numberTotalOfProducts);
-			$totalnboflines .= '</span>';
+		$totalnboflines .= $langs->trans("itemFound", $remotestore->numberTotalOfProducts);
+		$totalnboflines .= '</span>';
 
-			print $totalnboflines;
-			print $remotestore->getPagination();
+		print $totalnboflines;
+		print $remotestore->getPagination();
 		print '</form>';
 
 		print '</div>';
@@ -1552,7 +1597,7 @@ if ($mode == 'deploy') {
 		}
 
 		if ($allowfromweb == 1) {
-			print '<form enctype="multipart/form-data" method="POST" class="noborder" action="'.$_SERVER["PHP_SELF"].'" name="forminstall">';
+			print '<form enctype="multipart/form-data" method="POST" class="noborder" action="'.$_SERVER["PHP_SELF"].'" name="forminstall" spellcheck="false">';
 			print '<input type="hidden" name="token" value="'.newToken().'">';
 			print '<input type="hidden" name="action" value="install">';
 			print '<input type="hidden" name="mode" value="deploy">';
@@ -1619,13 +1664,13 @@ if ($mode == 'deploy') {
 				$(document).ready(function() {
 					jQuery("#fileinstall").on("change", function() {
 						if(this.files[0].size > '.($maxmin * 1024).') {
-							alert("'.dol_escape_js($langs->transnoentitiesnoconv("ErrorFileSizeTooLarge")).'");
+							alert(\''.dol_escape_js($langs->transnoentitiesnoconv("ErrorFileSizeTooLarge")).'\');
 							this.value = "";
 						}
 					});
 				});
 				</script>'."\n";
-				// MAX_FILE_SIZE doit précéder le champ input de type file
+				// MAX_FILE_SIZE must come before the file input field
 				print '<input type="hidden" name="MAX_FILE_SIZE" value="'.($maxmin * 1024).'">';
 			}
 

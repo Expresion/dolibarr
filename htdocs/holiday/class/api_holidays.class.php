@@ -45,6 +45,25 @@ class Holidays extends DolibarrApi
 	);
 
 	/**
+	 * @var string[]	Workflow fields that must not be set through the generic
+	 *					create/update endpoints. They can only be changed via the
+	 *					dedicated routes (validate, approve, refuse, cancel, reopen)
+	 *					that enforce the proper permission checks.
+	 */
+	public static $FIELDS_FORBIDDEN_FOR_API = array(
+		'status',
+		'statut',
+		'fk_validator',
+		'date_valid',
+		'fk_user_valid',
+		'date_approval',
+		'fk_user_approve',
+		'date_refuse',
+		'fk_user_refuse',
+		'detail_refuse',
+	);
+
+	/**
 	 * @var Holiday {@type Holiday}
 	 */
 	public $holiday;
@@ -104,7 +123,7 @@ class Holidays extends DolibarrApi
 	 * @param	int			$limit				List limit
 	 * @param	int			$page				Page number
 	 * @param	string		$user_ids   		User ids filter field. Example: '1' or '1,2,3'          {@pattern /^[0-9,]*$/i}
-	 * @param	string		$sqlfilters 		Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
+	 * @param	string		$sqlfilters 		Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:>:'20160101')"
 	 * @param	string		$properties			Restrict the data returned to these properties. Ignored if empty. Comma separated list of properties names
 	 * @param	bool		$pagination_data	If this parameter is set to true the response will include pagination data. Default value is false. Page starts from 0*
 	 * @return	array<string,mixed>				Array of order objects
@@ -221,6 +240,9 @@ class Holidays extends DolibarrApi
 				$this->holiday->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
 				continue;
 			}
+			if (in_array($field, self::$FIELDS_FORBIDDEN_FOR_API) && $field !== 'fk_validator') {
+				throw new RestException(400, "Field '".$field."' is not allowed in create endpoint. Use dedicated routes (validate, approve, refuse, cancel, reopen) to change the workflow status.");
+			}
 
 			$this->holiday->$field = $this->_checkValForAPI($field, $value, $this->holiday);
 		}
@@ -270,6 +292,11 @@ class Holidays extends DolibarrApi
 		if (!DolibarrApi::_checkAccessToResource('holiday', $this->holiday)) {
 			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
+
+		if (!is_array($request_data)) {
+			$request_data = array();
+		}
+
 		foreach ($request_data as $field => $value) {
 			if ($field == 'id') {
 				continue;
@@ -278,6 +305,9 @@ class Holidays extends DolibarrApi
 				// Add a mention of caller so on trigger called after action, we can filter to avoid a loop if we try to sync back again with the caller
 				$this->holiday->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
 				continue;
+			}
+			if (in_array($field, self::$FIELDS_FORBIDDEN_FOR_API)) {
+				throw new RestException(400, "Field '".$field."' is not allowed in update endpoint. Use dedicated routes (validate, approve, refuse, cancel, reopen) to change the workflow status.");
 			}
 
 			if ($field == 'array_options' && is_array($value)) {

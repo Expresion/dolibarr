@@ -1,6 +1,7 @@
 <?php
 /* Copyright (C) 2026	Laurent Destailleur		<eldy@users.sourceforge.net>
  * Copyright (C) 2026	Nick Fragoulis
+ * Copyright (C) 2026   Frédéric France         <frederic.france@free.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@
 
 require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+
 
 /**
  * Class ToolThirdParty
@@ -55,7 +57,7 @@ class ToolThirdParty extends McpTool
 		return [
 			[
 				"name" => "search_thirdparties",
-				"description" => "Search for a thirdparty by ID, name, alias, code, or email. If an ID is provided, it returns an exact match. If a name is provided, it returns a list of matches.",
+				"description" => "Search for a thirdparty by ID, name, alias, code, or email. If a numerical ID is provided alone, it returns an exact match. If a name is provided, it returns a list of matches.",
 				"inputSchema" => [
 					"type" => "object",
 					"properties" => [
@@ -63,6 +65,19 @@ class ToolThirdParty extends McpTool
 						"type" => ["type" => "string", "enum" => ["customer", "prospect", "supplier"], "description" => "Filter by type (optional)."],
 						"country_code" => ["type" => "string", "description" => "ISO 2-letter country code (e.g. US, FR, GR) (optional)."],
 						"limit" => ["type" => "integer", "default" => 5]
+					],
+					"required" => ["query"]
+				]
+			],
+			[
+				"name" => "count_thirdparties",
+				"description" => "Count the number of thirdparties matching the search criteria.",
+				"inputSchema" => [
+					"type" => "object",
+					"properties" => [
+						"query" => ["type" => ["string", "integer"], "description" => "A name/alias/code/email to search for."],
+						"type" => ["type" => "string", "enum" => ["customer", "prospect", "supplier"], "description" => "Filter by type (optional)."],
+						"country_code" => ["type" => "string", "description" => "ISO 2-letter country code (e.g. US, FR, GR) (optional)."]
 					],
 					"required" => ["query"]
 				]
@@ -80,12 +95,12 @@ class ToolThirdParty extends McpTool
 			],
 			[
 				"name" => "create_thirdparty",
-				"description" => "Create a new thirdparty (Using only terms: Customer, Prospect, or Supplier).",
+				"description" => "Create a new thirdparty: customer, prospect, or supplier (also called vendor).",
 				"inputSchema" => [
 					"type" => "object",
 					"properties" => [
 						"name" => ["type" => "string", "description" => "Name of the thirdparty"],
-						"type" => ["type" => "string", "enum" => ["customer", "prospect", "supplier", "both", "none"], "default" => "customer", "description" => "Type of thirdparty. 'none' means not a customer or prospect."],
+						"type" => ["type" => "string", "enum" => ["customer", "prospect", "supplier", "both", "none"], "default" => "customer", "description" => "Type of thirdparty. Use 'supplier' for a vendor. 'none' means not a customer or prospect."],
 						"email" => ["type" => "string", "description" => "Email address"],
 						"phone" => ["type" => "string", "description" => "Phone number"],
 						"address" => ["type" => "string", "description" => "Address"],
@@ -93,7 +108,8 @@ class ToolThirdParty extends McpTool
 						"town" => ["type" => "string", "description" => "Town/City"],
 						"country_code" => ["type" => "string", "description" => "ISO 2-letter country code (e.g. US, FR, GR)"],
 						"code_client" => ["type" => "string", "description" => "Customer code (optional, -1 for auto-generation)"],
-						"idprof1" => ["type" => "string", "description" => "Professional ID 1"],
+						"tva_intra" => ["type" => "string", "description" => "VAT number. For EU companies use the intra-community format with country prefix (e.g. FR12345678901, DE123456789, EL123456789)."],
+						"idprof1" => ["type" => "string", "description" => "Professional ID 1 - country-specific (e.g. SIREN in France, CIF in Spain, AFM in Greece, Company Number in UK)"],
 						"idprof2" => ["type" => "string", "description" => "Professional ID 2"],
 						"idprof3" => ["type" => "string", "description" => "Professional ID 3"],
 						"idprof4" => ["type" => "string", "description" => "Professional ID 4"]
@@ -174,8 +190,10 @@ class ToolThirdParty extends McpTool
 	{
 		switch ($name) {
 			case 'search_thirdparties':
-				return $this->search($args);
-			case 'get_thirdparty_details':
+				return $this->search($args, 0);
+			case 'count_thirdparties':
+				return $this->search($args, 1);
+			case 'get_thirdparty_details':			// Get info of agiven thidparty
 				return $this->getDetails($args);
 			case 'create_thirdparty':
 				return $this->create($args);
@@ -198,10 +216,10 @@ class ToolThirdParty extends McpTool
 	 *                                                                                                 - country_code: ISO country code on 2 chars (FR, US, GR...)
 	 *                                                                                                 - type: 'customer', 'prospect', 'supplier'
 	 *                                                                                                 - limit: Limit results (default 5)
-	 * @return array{error:string}|list<array{id:int,name:string,alias:string,code_cust:string,code_sup:string,email:string,type:string,url:string}>
-	 *
+	 * @param	int		$count		If set to 1, returns only the count of results.
+	 * @return array{error:string}|array{count:int}|list<array{id:int,name:string,alias:string,code_cust:string,code_sup:string,email:string,type:string,url:string}>
 	 */
-	private function search(array $args)
+	private function search(array $args, int $count = 0)
 	{
 		if (!$this->user->hasRight('societe', 'lire')) {
 			return ["error" => "Permission Denied"];
@@ -216,9 +234,17 @@ class ToolThirdParty extends McpTool
 		if ($limit <= 0) {
 			$limit = 5;
 		}
+		if ($limit > 1000) {
+			dol_syslog("Search DB Error: Too many record requested", LOG_ERR);
+			return ["error" => "DB Error"];
+		}
 
 		// Dolibarr SQL construction
-		$sql = "SELECT s.rowid, s.nom, s.name_alias, s.code_client, s.code_fournisseur, s.email, s.client, s.fournisseur";
+		if ($count) {
+			$sql = "SELECT COUNT(s.rowid) as nb";
+		} else {
+			$sql = "SELECT s.rowid, s.nom, s.name_alias, s.code_client, s.code_fournisseur, s.email, s.client, s.fournisseur";
+		}
 		$sql .= " FROM " . MAIN_DB_PREFIX . "societe as s";
 		if ($country_code) {
 			$sql.= " INNER JOIN ".MAIN_DB_PREFIX."c_country as c ON s.fk_pays = c.rowid AND c.code = '".$this->db->escape($country_code)."'";
@@ -229,11 +255,11 @@ class ToolThirdParty extends McpTool
 			$sql .= " AND s.rowid = " . (int) $query;
 			$limit = 1;
 		} else {
-			$sql .= " AND (s.nom LIKE '%" . $this->db->escape($q) . "%'";
-			$sql .= " OR s.name_alias LIKE '%" . $this->db->escape($q) . "%'";
-			$sql .= " OR s.code_client LIKE '%" . $this->db->escape($q) . "%'";
-			$sql .= " OR s.code_fournisseur LIKE '%" . $this->db->escape($q) . "%'";
-			$sql .= " OR s.email LIKE '%" . $this->db->escape($q) . "%')";
+			$sql .= " AND (s.nom LIKE '%" . $this->db->escape($query) . "%'";
+			$sql .= " OR s.name_alias LIKE '%" . $this->db->escape($query) . "%'";
+			$sql .= " OR s.code_client LIKE '%" . $this->db->escape($query) . "%'";
+			$sql .= " OR s.code_fournisseur LIKE '%" . $this->db->escape($query) . "%'";
+			$sql .= " OR s.email LIKE '%" . $this->db->escape($query) . "%')";
 		}
 
 		if ($type === 'customer') {
@@ -245,7 +271,7 @@ class ToolThirdParty extends McpTool
 		}
 
 		$sql .= " ORDER BY s.nom ASC";
-		$sql .= " LIMIT " . (int) $limit;
+		$sql .= $this->db->plimit($limit);
 
 		$resql = $this->db->query($sql);
 
@@ -257,6 +283,16 @@ class ToolThirdParty extends McpTool
 		$data = [];
 
 		while ($obj = $this->db->fetch_object($resql)) {
+			if ($count) {
+				$data = [
+					"count" => (int) $obj->nb
+				];
+
+				$this->db->free($resql);
+
+				return $data;
+			}
+
 			$roles = [];
 
 			// Cast strictly to ensure type safety in logic
@@ -344,8 +380,6 @@ class ToolThirdParty extends McpTool
 	 */
 	private function create(array $args)
 	{
-		global $conf;
-
 		// Check permissions
 		if (!$this->user->hasRight('societe', 'creer')) {
 			return ["error" => "Permission Denied"];
@@ -356,10 +390,29 @@ class ToolThirdParty extends McpTool
 			return ["error" => "Name is required"];
 		}
 
+		// Guardrails against low-quality model extractions.
+		$name = trim((string) $args['name']);
+		if (preg_match('/^(?:Ο\.?Ε\.?|Ε\.?Ε\.?|Ε\.?Π\.?Ε\.?|Ι\.?Κ\.?Ε\.?|Α\.?Ε\.?|O\.?E\.?|E\.?E\.?|A\.?E\.?|LTD|GMBH|S\.?A\.?|SARL|LLC|INC)$/iu', $name)) {
+			return ["error" => "'".$name."' is only a legal-form suffix, not a company name. Extract the full company name from the document (the suffix usually follows it)."];
+		}
+
+		$warnings = array();
+		if (!empty($args['email']) && !isValidEmail((string) $args['email'])) {
+			$warnings[] = "Email '".$args['email']."' is not a valid address and was not saved.";
+			$args['email'] = '';
+		}
+
+		// Refuse silent duplicates: an identical name almost always means the
+		// same document was processed twice.
+		$existing = new Societe($this->db);
+		if ($existing->fetch(0, $name) > 0) {
+			return ["error" => "A thirdparty named '".$name."' already exists (id ".$existing->id."). Use update_thirdparty to modify it instead of creating a duplicate."];
+		}
+
 		$soc = new Societe($this->db);
 
 		// Assign properties with strict casting to prevent null issues in strict mode
-		$soc->nom = (string) $args['name'];
+		$soc->nom = $name;
 		$soc->email = isset($args['email']) ? (string) $args['email'] : '';
 		$soc->phone = isset($args['phone']) ? (string) $args['phone'] : '';
 		$soc->address = isset($args['address']) ? (string) $args['address'] : '';
@@ -370,6 +423,7 @@ class ToolThirdParty extends McpTool
 		$soc->idprof2 = isset($args['idprof2']) ? (string) $args['idprof2'] : '';
 		$soc->idprof3 = isset($args['idprof3']) ? (string) $args['idprof3'] : '';
 		$soc->idprof4 = isset($args['idprof4']) ? (string) $args['idprof4'] : '';
+		$soc->tva_intra = isset($args['tva_intra']) ? (string) $args['tva_intra'] : '';
 
 		// Country Handling
 		if (! empty($args['country_code'])) {
@@ -383,8 +437,8 @@ class ToolThirdParty extends McpTool
 		}
 
 		// Fallback to default country if not set
-		if (empty($soc->country_id) && !empty($conf->global->MAIN_INFO_SOCIETE_COUNTRY)) {
-			$soc->country_id = (int) $conf->global->MAIN_INFO_SOCIETE_COUNTRY;
+		if (empty($soc->country_id) && getDolGlobalString('MAIN_INFO_SOCIETE_COUNTRY')) {
+			$soc->country_id = getDolGlobalInt('MAIN_INFO_SOCIETE_COUNTRY');
 		}
 
 		$type = $args['type'] ?? 'customer';
@@ -418,13 +472,18 @@ class ToolThirdParty extends McpTool
 		$result = $soc->create($this->user);
 
 		if ($result > 0) {
-			return [
+			$out = [
 				"status"  => "success",
 				"message" => "Thirdparty created",
 				"id"      => (int) $soc->id,
 				"name"    => (string) $soc->name,
 				"url"     => DOL_URL_ROOT . "/societe/card.php?socid=" . $soc->id
 			];
+			if (!empty($warnings)) {
+				$out["warnings"] = $warnings;
+			}
+
+			return $out;
 		}
 
 		return ["error" => "Create failed: " . (string) $soc->error];

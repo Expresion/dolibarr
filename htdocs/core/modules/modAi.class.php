@@ -3,6 +3,8 @@
  * Copyright (C) 2018-2019  Nicolas ZABOURI         <info@inovea-conseil.com>
  * Copyright (C) 2019-2024  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2024		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026		Jose Martinez			<jose.martinez@pichinov.com>
+ * Copyright (C) 2026		Nick Fragoulis
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,13 +111,7 @@ class modAi extends DolibarrModules
 				//   '/ai/js/ai.js.php',
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
-			'hooks' => array(
-				//   'data' => array(
-				//       'hookcontext1',
-				//       'hookcontext2',
-				//   ),
-				//   'entity' => '0',
-			),
+			'hooks' => array('all'),
 			// Set this to 1 if features of module are opened to external users
 			'moduleforexternal' => 0,
 		);
@@ -259,6 +255,26 @@ class modAi extends DolibarrModules
 		$r = 0;
 		// Add here entries to declare new permissions
 		/* BEGIN MODULEBUILDER PERMISSIONS */
+		// Right to use the AI Assistant chat (read-level access to the AI workflow).
+		//
+		// NOT granted by default: per the GDPR / EU AI Act discussion on
+		// issue #38331 (and feedback by @sonikf and @eldy on this PR),
+		// AI Assistant usage must be attributed explicitly by an admin to
+		// the users/groups who are authorized to send organisational data
+		// to the configured LLM provider. The admin is typically the GDPR
+		// DPO officer who is also the de-facto DPA for the AI module, and
+		// owns the per-user authorization decision.
+		//
+		// Setup access intentionally remains a hard $user->admin check
+		// (technical setup, no dedicated right declared) so that the
+		// API-key configuration of the AI module stays in admin scope,
+		// in line with how every other Dolibarr module is configured.
+		$this->rights[$r][0] = $this->numero + 1;
+		$this->rights[$r][1] = 'Use the AI Assistant';
+		$this->rights[$r][3] = 0;	// default: NOT granted
+		$this->rights[$r][4] = 'assistant';
+		$this->rights[$r][5] = 'use';
+		$r++;
 		/* END MODULEBUILDER PERMISSIONS */
 
 		// Main menu entries to add

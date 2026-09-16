@@ -13,7 +13,7 @@
  * Copyright (C) 2016		Ferran Marcet			<fmarcet@2byte.es>
  * Copyright (C) 2018-2026  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2018		Nicolas ZABOURI			<info@inovea-conseil.com>
- * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2026	MDW						<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2025		Mélina Joum				<melina.joum@altairis.fr>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -597,7 +597,7 @@ if (empty($reshook)) {
 		$level = GETPOSTINT('level');
 		$basePrice = ($object->price_base_type == 'HT') ? $object->price : $object->price_ttc;
 		$basePriceMin = ($object->price_base_type == 'HT') ? $object->price_min : $object->price_min_ttc;
-		$ret = $object->updatePrice($basePrice, $object->price_base_type, $user, $object->tva_tx, $basePriceMin, $level, $object->tva_npr, 1);
+		$ret = $object->updatePrice($basePrice, $object->price_base_type, $user, $object->tva_tx, $basePriceMin, $level, $object->tva_npr, 1, 0, array(), $object->default_vat_code);
 
 		if ($ret < 0) {
 			setEventMessages($object->error, $object->errors, 'errors');
@@ -609,7 +609,7 @@ if (empty($reshook)) {
 		$level = GETPOSTINT('level');
 		$basePrice = ($object->price_base_type == 'HT') ? $object->price : $object->price_ttc;
 		$basePriceMin = ($object->price_base_type == 'HT') ? $object->price_min : $object->price_min_ttc;
-		$ret = $object->updatePrice($basePrice, $object->price_base_type, $user, $object->tva_tx, $basePriceMin, $level, $object->tva_npr, 0);
+		$ret = $object->updatePrice($basePrice, $object->price_base_type, $user, $object->tva_tx, $basePriceMin, $level, $object->tva_npr, 0, 0, array(), $object->default_vat_code);
 
 		if ($ret < 0) {
 			setEventMessages($object->error, $object->errors, 'errors');
@@ -622,7 +622,7 @@ if (empty($reshook)) {
 
 	// Add or update price by quantity
 	if ($action == 'update_price_by_qty' && $permissiontoadd) {
-		// Récupération des variables
+		// Get the variables
 		$rowid = GETPOSTINT('rowid');
 		$priceid = GETPOSTINT('priceid');
 		$newprice = price2num(GETPOST("price"), 'MU', 2);
@@ -648,7 +648,7 @@ if (empty($reshook)) {
 			$price = price2num($newprice, 'MU');
 			$unitPrice = price2num((float) $price / (float) $quantity, 'MU');
 
-			// Ajout / mise à jour
+			// Update or add
 			if ($rowid > 0) {
 				$sql = "UPDATE ".MAIN_DB_PREFIX."product_price_by_qty SET";
 				$sql .= " price=".((float) $price).",";
@@ -2191,7 +2191,7 @@ if (getDolGlobalString('PRODUIT_CUSTOMER_PRICES') || getDolGlobalString('PRODUIT
 		if (!empty($extralabels)) {
 			if (empty($object->id)) {
 				foreach ($extralabels as $key => $value) {
-					if (!empty($extrafields->attributes["product_customer_price"]['list'][$key]) && ($extrafields->attributes["product_customer_price"]['list'][$key] == 1 || $extrafields->attributes["product_customer_price"]['list'][$key] == 3 || ($action == "edit_price" && $extrafields->attributes["product_customer_price"]['list'][$key] == 4))) {
+					if (!empty($extrafields->attributes["product_customer_price"]['list'][$key]) && ($extrafields->attributes["product_customer_price"]['list'][$key] == 1 || $extrafields->attributes["product_customer_price"]['list'][$key] == 3 || ($action == "edit_customer_price" && $extrafields->attributes["product_customer_price"]['list'][$key] == 4))) {
 						if (!empty($extrafields->attributes["product_customer_price"]['langfile'][$key])) {
 							$langs->load($extrafields->attributes["product_customer_price"]['langfile'][$key]);
 						}
@@ -2217,7 +2217,7 @@ if (getDolGlobalString('PRODUIT_CUSTOMER_PRICES') || getDolGlobalString('PRODUIT
 				if ($resql) {
 					$obj = $db->fetch_object($resql);
 					foreach ($extralabels as $key => $value) {
-						if (!empty($extrafields->attributes["product_customer_price"]['list'][$key]) && ($extrafields->attributes["product_customer_price"]['list'][$key] == 1 || $extrafields->attributes["product_customer_price"]['list'][$key] == 3 || ($action == "edit_price" && $extrafields->attributes["product_customer_price"]['list'][$key] == 4))) {
+						if (!empty($extrafields->attributes["product_customer_price"]['list'][$key]) && ($extrafields->attributes["product_customer_price"]['list'][$key] == 1 || $extrafields->attributes["product_customer_price"]['list'][$key] == 3 || ($action == "edit_customer_price" && $extrafields->attributes["product_customer_price"]['list'][$key] == 4))) {
 							if (!empty($extrafields->attributes["product_customer_price"]['langfile'][$key])) {
 								$langs->load($extrafields->attributes["product_customer_price"]['langfile'][$key]);
 							}
